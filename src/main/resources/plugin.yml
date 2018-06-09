@@ -1,0 +1,10 @@
+name: ${project.name}
+author: Zaphoo
+version: 1
+main: me.zaphoo.discordmc.Main
+
+commands:
+  discord:
+    description: ICommand for Main
+    usage: /<command> <args>
+

@@ -1,0 +1,18 @@
+
+settings:
+  token: ''
+  chat-prefix: "§bDiscord: "
+
+  guild: ""
+  log-channel: ""
+  rules-channel: ""
+  announce-channel: ""
+  mute-role: ""
+  voice-mute-role: ""
+  discord_commands:
+    enabled: true
+    command_prefix: 'ob!'
+
+ticket-id: 0
+case-id: 0
+uses: 0
