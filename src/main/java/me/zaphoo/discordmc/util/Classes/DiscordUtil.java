@@ -1,4 +1,4 @@
-package me.zaphoo.discordmc.util;
+package me.zaphoo.discordmc.util.Classes;
 
 import sx.blah.discord.api.IDiscordClient;
 import sx.blah.discord.util.DiscordException;

@@ -1,4 +1,4 @@
-package me.zaphoo.discordmc.util;
+package me.zaphoo.discordmc.util.Interfaces;
 
 public interface IFunctions {
 

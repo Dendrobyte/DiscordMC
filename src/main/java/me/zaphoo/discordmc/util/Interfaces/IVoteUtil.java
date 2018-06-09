@@ -1,4 +1,4 @@
-package me.zaphoo.discordmc.util;
+package me.zaphoo.discordmc.util.Interfaces;
 
 import me.zaphoo.discordmc.Main;
 import sx.blah.discord.handle.obj.IEmoji;

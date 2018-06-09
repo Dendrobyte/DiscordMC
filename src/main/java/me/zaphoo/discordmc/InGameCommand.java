@@ -1,7 +1,8 @@
 package me.zaphoo.discordmc;
 
 import me.zaphoo.discordmc.listener.DiscordEventListener;
-import me.zaphoo.discordmc.util.DiscordUtil;
+import me.zaphoo.discordmc.util.Classes.DiscordUtil;
+import me.zaphoo.discordmc.util.Classes.MessageAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;

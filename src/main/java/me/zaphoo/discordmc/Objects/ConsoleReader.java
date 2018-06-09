@@ -1,7 +1,8 @@
-package me.zaphoo.discordmc.util;
+package me.zaphoo.discordmc.Objects;
 
 import me.zaphoo.discordmc.Main;
 import me.zaphoo.discordmc.listener.DiscordEventListener;
+import me.zaphoo.discordmc.util.Classes.DiscordUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
@@ -17,15 +18,10 @@ import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedE
 import sx.blah.discord.util.RequestBuffer;
 
 import java.util.*;
-import java.util.concurrent.RunnableScheduledFuture;
-import java.util.concurrent.ScheduledFuture;
 
 public class ConsoleReader implements ConsoleCommandSender, Permissible {
 
     private MessageReceivedEvent e;
-    private List<String> responses = new ArrayList<>();
-    public static boolean isSent = false;
-    public static StringBuilder stringBuilder = null;
 
     public ConsoleReader(MessageReceivedEvent e, String command) {
         this.e = e;
@@ -137,22 +133,20 @@ public class ConsoleReader implements ConsoleCommandSender, Permissible {
 
     @Override
     public void recalculatePermissions() {
-        recalculatePermissions();
     }
 
     @Override
     public Set<PermissionAttachmentInfo> getEffectivePermissions() {
-        return getEffectivePermissions();
+        return null;
     }
 
     @Override
     public boolean isOp() {
-        return isOp();
+        return true;
     }
 
     @Override
     public void setOp(boolean value) {
-        setOp(value);
     }
 
     @Override

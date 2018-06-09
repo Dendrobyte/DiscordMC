@@ -1,5 +1,6 @@
-package me.zaphoo.discordmc;
+package me.zaphoo.discordmc.util.Classes;
 
+import me.zaphoo.discordmc.Main;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.util.DiscordException;
@@ -9,7 +10,7 @@ import sx.blah.discord.util.RequestBuffer;
 public class MessageAPI {
     private static Main plugin;
 
-    MessageAPI(Main main) {
+    public MessageAPI(Main main) {
         MessageAPI.plugin = main;
     }
 

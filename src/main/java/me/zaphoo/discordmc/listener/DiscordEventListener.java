@@ -1,18 +1,18 @@
 package me.zaphoo.discordmc.listener;
 
-import com.google.common.primitives.UnsignedLong;
 import com.vdurmont.emoji.EmojiParser;
 import me.zaphoo.discordmc.Main;
-import me.zaphoo.discordmc.MessageAPI;
+import me.zaphoo.discordmc.util.Classes.MessageAPI;
 import me.zaphoo.discordmc.Objects.HelpList;
 import me.zaphoo.discordmc.Objects.Mute;
 import me.zaphoo.discordmc.Objects.Reminder;
-import me.zaphoo.discordmc.util.*;
+import me.zaphoo.discordmc.Objects.ConsoleReader;
+import me.zaphoo.discordmc.util.Classes.DiscordUtil;
+import me.zaphoo.discordmc.util.Classes.EmbedUtils;
+import me.zaphoo.discordmc.util.Interfaces.*;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
 import sx.blah.discord.api.events.EventSubscriber;
 import sx.blah.discord.handle.audit.ActionType;
 import sx.blah.discord.handle.audit.entry.TargetedEntry;
@@ -21,13 +21,10 @@ import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedE
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageSendEvent;
 import sx.blah.discord.handle.impl.events.guild.member.UserBanEvent;
 import sx.blah.discord.handle.obj.*;
-import sx.blah.discord.util.MessageBuilder;
 import sx.blah.discord.util.MessageHistory;
 import sx.blah.discord.util.RequestBuffer;
 
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.regex.Pattern;
 
 public class DiscordEventListener {
     private final Main plugin;
@@ -52,6 +49,10 @@ public class DiscordEventListener {
     }
 
     private static HashMap<String, ICommand> commandMap = new HashMap<>();
+
+    /*
+    SERVER OR STAFF COMMANDS GO IN HERE
+     */
 
     static {
 
@@ -120,7 +121,7 @@ public class DiscordEventListener {
                         if (sarray.length > 2) {
                             StringBuilder sb = new StringBuilder();
                             for (int i = 2; i < sarray.length; i++) {
-                                sb.append(sarray[i] + " ");
+                                sb.append(sarray[i]).append(" ");
                             }
                             reason = sb.toString().trim();
                         } else {
@@ -152,7 +153,7 @@ public class DiscordEventListener {
                     for (int i = 1; i < sarray.length; i++) {
                         if (EmojiParser.extractEmojis(sarray[i]) != null)
                             sarray[i] = EmojiParser.parseToAliases(sarray[i]);
-                        stringBuilder.append(sarray[i] + " ");
+                        stringBuilder.append(sarray[i]).append(" ");
                     }
                     String message = stringBuilder.toString().trim();
                     String prefix = Main.get().getConfig().getString("settings.chat-prefix");
@@ -207,7 +208,7 @@ public class DiscordEventListener {
                     RequestBuffer.request(() -> {
                         StringBuilder stringBuilder = new StringBuilder();
                         for (int i = 1; i < sarray.length; i++) {
-                            stringBuilder.append(sarray[i] + " ");
+                            stringBuilder.append(sarray[i]).append(" ");
                         }
                         String message = stringBuilder.toString().trim();
                         RequestBuffer.request(() -> {
@@ -270,7 +271,7 @@ public class DiscordEventListener {
                     try {
                         StringBuilder stringBuilder = new StringBuilder();
                         for (int i = 1; i < sarray.length; i++) {
-                            stringBuilder.append(sarray[i] + " ");
+                            stringBuilder.append(sarray[i]).append(" ");
                         }
                         String message = stringBuilder.toString().trim();
                         String question = message.substring(0, message.indexOf('['));
@@ -282,7 +283,7 @@ public class DiscordEventListener {
                         for (int i = 0; i < count; i++) {
                             try {
                                 String optionsRaw = message.substring(message.indexOf('[') + 1, message.indexOf(']'));
-                                if (optionsRaw.equalsIgnoreCase("") || optionsRaw == null) {
+                                if (optionsRaw.isEmpty()) {
                                     MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), "One or more of the options did not contain an actual option. Please provide options for your options.");
                                     return;
                                 }
@@ -294,12 +295,12 @@ public class DiscordEventListener {
                             }
 
                         }
-                        String toReturn = event.getGuild().getEveryoneRole().mention() + ", **POLL** \n";
-                        toReturn += question + "\n";
+                        StringBuilder toReturn = new StringBuilder(event.getGuild().getEveryoneRole().mention() + ", **POLL** \n");
+                        toReturn.append(question).append("\n");
                         for (int i = 0; i < options.size(); i++) {
-                            toReturn += "Vote " + IVoteUtil.EMOJIS[i] + " for: " + options.get(i) + "\n";
+                            toReturn.append("Vote ").append(IVoteUtil.EMOJIS[i]).append(" for: ").append(options.get(i)).append("\n");
                         }
-                        MessageAPI.sendToDiscord(guild, announce, toReturn);
+                        MessageAPI.sendToDiscord(guild, announce, toReturn.toString());
                         setReactCount(options.size());
                         MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), "Poll created, with the question: \"" + question + "\". The question has " + options.size() + " options.");
                     } catch (Exception e) {
@@ -314,6 +315,10 @@ public class DiscordEventListener {
 
 
     private static HashMap<String, ICommand> baseCommands = new HashMap<>();
+
+    /*
+    PUBLIC COMMANDS GO HERE
+     */
 
     static {
         baseCommands.put("help", ((event, args) -> {
@@ -342,10 +347,8 @@ public class DiscordEventListener {
             }
 
             try {
-                Iterator<String> $i = Main.getRemindFile().getConfigurationSection("reminders").getKeys(false).iterator();
-                while ($i.hasNext()) {
-                    String stringRaw = $i.next().toString();
-                    long time = Long.parseUnsignedLong(stringRaw.replaceAll("'", ""));
+                for (String s : Main.getRemindFile().getConfigurationSection("reminders").getKeys(false)) {
+                    long time = Long.parseUnsignedLong(s.replaceAll("'", ""));
                     if (time > System.currentTimeMillis()) {
                         long ID = Long.parseLong(Main.getRemindFile().getConfigurationSection("reminders." + time).getKeys(false).iterator().next().replaceAll("'", ""));
                         long mID = Main.getRemindFile().getLong("reminders." + time + "." + ID + ".ID");
@@ -395,15 +398,15 @@ public class DiscordEventListener {
 
     }
 
-    public static long getAnnounce() {
+    private static long getAnnounce() {
         return announce;
     }
 
-    public static int getReactCount() {
+    private static int getReactCount() {
         return reactCount;
     }
 
-    public static void setReactCount(int reactCount) {
+    private static void setReactCount(int reactCount) {
         DiscordEventListener.reactCount = reactCount;
     }
 
@@ -424,11 +427,11 @@ public class DiscordEventListener {
                     String[] message = event.getMessage().getContent().split(" ");
                     try {
                         long l = Long.parseUnsignedLong(message[1]);
-                        String s = "";
+                        StringBuilder s = new StringBuilder();
                         for (int i = 2; i < message.length; i++) {
-                            s += message[i] + " ";
+                            s.append(message[i]).append(" ");
                         }
-                        Main.getClient().getUserByID(l).getOrCreatePMChannel().sendMessage(s);
+                        Main.getClient().getUserByID(l).getOrCreatePMChannel().sendMessage(s.toString());
                     } catch (Exception e) {
                         reportError(e);
                     }
@@ -512,6 +515,8 @@ public class DiscordEventListener {
             ICommandList.add("kill", "Kills any pending thread or requests." +
                     "\nUseful in cases of bot spam, with many requests sent at once." +
                     "\nUsage: ob!kill");
+            ICommandList.add("reminders", "Tells you how many active reminders you have." +
+                    "\nUsage: ob!reminders");
 
 
             Main.checkReminders(); // Check if any reminders have expired since last shutdown
@@ -602,90 +607,90 @@ public class DiscordEventListener {
 
 
     @EventSubscriber
-    public void logBans(UserBanEvent e) {
+    public void logBans(UserBanEvent e) { // When a user is banned
         try {
 
 
-            if (IPermissionsUtil.hasPermission(e, Permissions.VIEW_AUDIT_LOG)) {
+            if (IPermissionsUtil.hasPermission(e, Permissions.VIEW_AUDIT_LOG)) { // If the bot has access to view the audit log
 
-                TargetedEntry entry = e.getGuild().getAuditLog(ActionType.MEMBER_BAN_ADD)
+                TargetedEntry entry = e.getGuild().getAuditLog(ActionType.MEMBER_BAN_ADD) // Get specific entry
                         .getEntriesByTarget(e.getUser().getLongID())
                         .stream().sorted(Comparator.comparing(TargetedEntry::getTargetID).reversed())
                         .findFirst().get();
-                long ticket = getAndUpdateTickets("ban");
-                String bannedBy = entry.getResponsibleUser().getName();
-                String reason = entry.getReason().orElse(bannedBy + " banned " + e.getUser().getName() + " without providing a reason.");
-                MessageAPI.sendToDiscord(
-                        guild,
-                        channel,
-                        EmbedUtils.banToChannel(
-                                e.getUser(),
-                                bannedBy,
-                                ticket,
-                                reason,
-                                e.getGuild()
+                long ticket = getAndUpdateTickets("ban"); // Get ticket and update
+                String bannedBy = entry.getResponsibleUser().getName(); // Who banned the user
+                String reason = entry.getReason().orElse(bannedBy + " banned " + e.getUser().getName() + " without providing a reason."); // If no reason is provided, tell, else get reason
+                MessageAPI.sendToDiscord( // Custom sendMessage
+                        guild, // Guild to send to
+                        channel, // Channel to send to
+                        EmbedUtils.banToChannel( // Get Embed
+                                e.getUser(), // Get banned user
+                                bannedBy, // Get who banned
+                                ticket, // Get ticket
+                                reason, // Get Reason
+                                e.getGuild() // Get guild
                         ));
-                RequestBuffer.request(() -> {
-                    e.getUser().getOrCreatePMChannel().sendMessage(EmbedUtils.banToUser(e.getUser(), bannedBy, ticket, reason, e.getGuild()));
-                    e.getUser().getOrCreatePMChannel().sendMessage("You can not reply to this message");
+                RequestBuffer.request(() -> { // Prevent ratelimit
+                    e.getUser().getOrCreatePMChannel().sendMessage(EmbedUtils.banToUser(e.getUser(), bannedBy, ticket, reason, e.getGuild())); // Send banned user their embed
+                    e.getUser().getOrCreatePMChannel().sendMessage("You can not reply to this message"); // Let user know they cannot reply
                 });
             } else {
-                RequestBuffer.request(() -> {
+                RequestBuffer.request(() -> { // Prevent ratelimit
                     MessageAPI.sendToDiscord(guild, channel, ":x: Please make sure that the bot has access the right permissions. " +
-                            "Permissions missing: " + Permissions.VIEW_AUDIT_LOG);
+                            "Permissions missing: " + Permissions.VIEW_AUDIT_LOG); // Tell sender that the bot does not have access to the audit log
                 });
             }
 
         } catch (Exception e1) {
-            reportError(e1);
+            reportError(e1); // Send error to bot owner
         }
     }
 
-    public static long getChannel() {
+    public static long getChannel() { // Gets channel from config
         return channel;
     }
 
-    public static long getGuild() {
+    public static long getGuild() { // Gets guild from config
         return guild;
     }
 
-    public static long getAndUpdateTickets(String caze) throws NullPointerException {
+    private static long getAndUpdateTickets(String caze) throws NullPointerException { // Get and update ticket
         try {
-            if (caze.equalsIgnoreCase("warning")) {
-                long ticket = Main.get().getConfig().getLong("ticket-id");
-                Main.get().getConfig().set("ticket-id", ++ticket);
-                Main.get().saveConfig();
-                return ticket;
-            } else if (caze.equalsIgnoreCase("ban")) {
-                long ticket = Main.get().getConfig().getLong("case-id");
-                Main.get().getConfig().set("case-id", ++ticket);
-                Main.get().saveConfig();
-                return ticket;
-            } else {
+            if (caze.equalsIgnoreCase("warning")) { // If ticket is a warning
+                long ticket = Main.get().getConfig().getLong("ticket-id"); // Get the long ID of ticket
+                Main.get().getConfig().set("ticket-id", ++ticket); // Increase ticket count
+                Main.get().saveConfig(); // Save config
+                return ticket; // Return ticket ID
+            } else if (caze.equalsIgnoreCase("ban")) { // If ticket is ban
+                long ticket = Main.get().getConfig().getLong("case-id"); // Get the long ID of ticket
+                Main.get().getConfig().set("case-id", ++ticket); // Increase ticket count
+                Main.get().saveConfig(); // Save config
+                return ticket; // Return ticket ID
+            } else { // If none of above, throw NPE
                 throw new NullPointerException("No case type " + caze + " is present. Contact the developer with this error message");
             }
 
         } catch (Exception e) {
-            reportError(e);
+            reportError(e); // Send exception to bot owner
         }
         return 0;
     }
 
-    public static void getAndUpdateTickets(MessageReceivedEvent e, String caze, long ID) throws NullPointerException {
+    private static void getAndUpdateTickets(MessageReceivedEvent e, String caze, long ID) throws NullPointerException { // Get and update ticket
         try {
-            if (caze.equalsIgnoreCase("warning")) {
-                Main.get().getConfig().set("ticket-id", ID);
-                Main.get().saveConfig();
-                e.getChannel().sendMessage(":white_check_mark: The warning tickets was successfully set to " + ID);
-            } else if (caze.equalsIgnoreCase("ban")) {
-                Main.get().getConfig().set("case-id", ID);
-                Main.get().saveConfig();
-                e.getChannel().sendMessage(":white_check_mark: The ban tickets was successfully set to " + ID);
-            } else {
+            if (caze.equalsIgnoreCase("warning")) { // If ticket is a warning
+                Main.get().getConfig().set("ticket-id", ID);  // Get the long ID of ticket
+                Main.get().saveConfig(); // Save config
+                e.getChannel().sendMessage(":white_check_mark: The warning tickets was successfully set to " + ID); // Send message that ticket has been set
+            } else if (caze.equalsIgnoreCase("ban")) { // If ticket is ban
+                Main.get().getConfig().set("case-id", ID); // Get the long ID of ticket
+                Main.get().saveConfig(); // Save config
+                e.getChannel().sendMessage(":white_check_mark: The ban tickets was successfully set to " + ID); // Send message that ticket has been set
+            } else { // If none of above, throw NPE
                 e.getChannel().sendMessage(":x: " + caze + " is not a valid category. Must be ban or warning.");
             }
         } catch (Exception e1) {
-            reportError(e1);
+            reportError(e1); // Send exception to bot owner
         }
     }
 }

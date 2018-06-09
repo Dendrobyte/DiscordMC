@@ -1,15 +1,13 @@
 package me.zaphoo.discordmc;
 
 import me.zaphoo.discordmc.listener.DiscordEventListener;
-import me.zaphoo.discordmc.util.DiscordUtil;
-import me.zaphoo.discordmc.util.EmbedUtils;
+import me.zaphoo.discordmc.util.Classes.DiscordUtil;
+import me.zaphoo.discordmc.util.Classes.EmbedUtils;
+import me.zaphoo.discordmc.util.Classes.MessageAPI;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import sx.blah.discord.Discord4J;
 import sx.blah.discord.api.ClientBuilder;
@@ -23,10 +21,7 @@ import sx.blah.discord.util.RateLimitException;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -154,18 +149,16 @@ public class Main extends JavaPlugin {
 
 
     private void createRemindersFile() {
-        this.reminders = new File(this.getDataFolder(), "reminders.yml");
-        if (!this.reminders.exists()) {
-            this.reminders.getParentFile().mkdirs();
+        reminders = new File(this.getDataFolder(), "reminders.yml");
+        if (!reminders.exists()) {
+            reminders.getParentFile().mkdirs();
             this.saveResource("reminders.yml", false);
         }
-        this.remindersConfig = new YamlConfiguration();
+        remindersConfig = new YamlConfiguration();
         try {
-            this.remindersConfig.load(this.reminders);
-        } catch (IOException var2) {
+            remindersConfig.load(reminders);
+        } catch (IOException | InvalidConfigurationException var2) {
             var2.printStackTrace();
-        } catch (InvalidConfigurationException var3) {
-            var3.printStackTrace();
         }
     }
 
@@ -181,22 +174,20 @@ public class Main extends JavaPlugin {
     }
 
     private void createMutesFile() {
-        this.mutes = new File(this.getDataFolder(), "mutes.yml");
-        if (!this.mutes.exists()) {
-            this.mutes.getParentFile().mkdirs();
+        mutes = new File(this.getDataFolder(), "mutes.yml");
+        if (!mutes.exists()) {
+            mutes.getParentFile().mkdirs();
             this.saveResource("mutes.yml", false);
         }
-        this.mutesConfig = new YamlConfiguration();
+        mutesConfig = new YamlConfiguration();
         try {
-            this.mutesConfig.load(this.mutes);
-        } catch (IOException var2) {
+            mutesConfig.load(mutes);
+        } catch (IOException | InvalidConfigurationException var2) {
             var2.printStackTrace();
-        } catch (InvalidConfigurationException var3) {
-            var3.printStackTrace();
         }
     }
 
-    public static void saveMutes() {
+    private static void saveMutes() {
         if (mutes != null) {
             try {
                 getMutesFile().save(mutes);
@@ -215,7 +206,7 @@ public class Main extends JavaPlugin {
         return remindersConfig;
     }
 
-    public static boolean isValidSetting(String setting) {
+    private static boolean isValidSetting(String setting) {
         String set = Main.get().getConfig().getString(setting);
         if (set.equalsIgnoreCase("") || set.equalsIgnoreCase("00")) {
             Main.get().getLogger().warning("" + setting + " is either empty or invalid. Value was " + set);
@@ -239,10 +230,8 @@ public class Main extends JavaPlugin {
                 @Override
                 public void run() {
                     try {
-                        Iterator<String> $i = getRemindFile().getConfigurationSection("reminders").getKeys(false).iterator();
-                        while ($i.hasNext()) {
-                            String stringRaw = $i.next().toString();
-                            long time = Long.parseUnsignedLong(stringRaw.replaceAll("'", ""));
+                        for (String s : getRemindFile().getConfigurationSection("reminders").getKeys(false)) {
+                            long time = Long.parseUnsignedLong(s.replaceAll("'", ""));
                             if (time < System.currentTimeMillis()) {
                                 long ID = Long.parseLong(getRemindFile().getConfigurationSection("reminders." + time).getKeys(true).iterator().next().replaceAll("'", ""));
                                 String message = getRemindFile().getString("reminders." + time + "." + ID);
@@ -265,9 +254,7 @@ public class Main extends JavaPlugin {
                 @Override
                 public void run() {
                     try {
-                        Iterator<String> $i = getMutesFile().getConfigurationSection("mutes").getKeys(false).iterator();
-                        while ($i.hasNext()) {
-                            String raw = $i.next();
+                        for (String raw : getMutesFile().getConfigurationSection("mutes").getKeys(false)) {
                             long time = Long.parseUnsignedLong(raw.replaceAll("'", ""));
                             if (time < System.currentTimeMillis()) {
 

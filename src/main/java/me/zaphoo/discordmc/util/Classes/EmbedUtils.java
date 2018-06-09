@@ -1,4 +1,4 @@
-package me.zaphoo.discordmc.util;
+package me.zaphoo.discordmc.util.Classes;
 
 import me.zaphoo.discordmc.Objects.Mute;
 import me.zaphoo.discordmc.Objects.Reminder;

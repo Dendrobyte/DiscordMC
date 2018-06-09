@@ -1,4 +1,4 @@
-package me.zaphoo.discordmc.util;
+package me.zaphoo.discordmc.util.Interfaces;
 
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.impl.events.guild.member.UserBanEvent;

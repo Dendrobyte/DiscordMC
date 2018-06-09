@@ -1,12 +1,10 @@
 package me.zaphoo.discordmc.Objects;
 
 import me.zaphoo.discordmc.Main;
-import me.zaphoo.discordmc.util.IPermissionsUtil;
-import me.zaphoo.discordmc.util.IRegexPatterns;
+import me.zaphoo.discordmc.util.Interfaces.IRegexPatterns;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -17,8 +15,8 @@ public class Reminder {
     //MATCHER -> ((\d+[dhms](\s)?){1,4}) matches date format 1d 1h 1m 1s
 
     public String message;
-    public long days = 0, hours = 0, minutes = 0, /*seconds = 0,*/
-            then = 0, now = 0;
+    private long days = 0, hours = 0, minutes = 0; /*seconds = 0,*/
+    public long then = 0, now = 0;
     private int count;
     public long ID;
 
@@ -50,13 +48,13 @@ public class Reminder {
 //                seconds = seconds * 1000; //FOR TESTING
 
                     then = now + this.days + this.hours + this.minutes;
-                    ID = ThreadLocalRandom.current().nextLong(1000L,9999999999L);
+                    ID = ThreadLocalRandom.current().nextLong(1000L, 9999999999L);
                     //ID = new Random().nextLong();
                     this.message = e.getMessage().getContent().substring(matcher.end(), e.getMessage().getContent().length());
                     Main.getRemindFile().set("count." + e.getAuthor().getStringID(), ++count);
                     Main.getRemindFile().set("reminders." + then + "." + e.getAuthor().getStringID() + ".message", message);
                     Main.getRemindFile().set("reminders." + then + "." + e.getAuthor().getStringID() + ".ID", ID);
-                    Main.get().saveReminders();
+                    Main.saveReminders();
                     e.getMessage().delete();
                     e.getChannel().sendMessage(":white_check_mark: Reminder set!");
 

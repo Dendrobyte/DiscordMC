@@ -2,8 +2,8 @@ package me.zaphoo.discordmc.Objects;
 
 import me.zaphoo.discordmc.Main;
 import me.zaphoo.discordmc.listener.DiscordEventListener;
-import me.zaphoo.discordmc.util.EmbedUtils;
-import me.zaphoo.discordmc.util.IRegexPatterns;
+import me.zaphoo.discordmc.util.Classes.EmbedUtils;
+import me.zaphoo.discordmc.util.Interfaces.IRegexPatterns;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IRole;
 import sx.blah.discord.handle.obj.IUser;
@@ -61,7 +61,7 @@ public class Mute {
                                         then = now + this.days + this.hours + this.minutes;
 
                                         this.message = e.getMessage().getContent().substring(matcher.end());
-                                        if (this.message == null || this.message.equalsIgnoreCase("")) {
+                                        if (this.message.isEmpty()) {
                                             this.message = "No reason provided.";
                                         }
                                         RequestBuffer.request(() -> {
@@ -77,7 +77,7 @@ public class Mute {
                                     RequestBuffer.request(() -> e.getChannel().sendMessage(":white_check_mark: No expiration time found. Muting forever."));
                                     StringBuilder sb = new StringBuilder();
                                     for (int i = 3; i < content.length; i++) {
-                                        sb.append(content[i] + " ");
+                                        sb.append(content[i]).append(" ");
                                     }
                                     if (sb.toString().length() == 0) {
                                         this.message = "No reason provided.";
@@ -114,7 +114,7 @@ public class Mute {
                                         then = now + this.days + this.hours + this.minutes;
 
                                         this.message = e.getMessage().getContent().substring(matcher.end());
-                                        if (this.message == null || this.message.equalsIgnoreCase("")) {
+                                        if (this.message.isEmpty()) {
                                             this.message = "No reason provided.";
                                         }
                                         Main.getMutesFile().set(String.valueOf(then), muted.getLongID());
@@ -130,7 +130,7 @@ public class Mute {
                                     e.getChannel().sendMessage(":white_check_mark: No expiration time found. Muting forever.");
                                     StringBuilder sb = new StringBuilder();
                                     for (int i = 3; i < content.length; i++) {
-                                        sb.append(content[i] + " ");
+                                        sb.append(content[i]).append(" ");
                                     }
                                     if (sb.toString().length() == 0) {
                                         this.message = "No reason provided.";
@@ -179,7 +179,7 @@ public class Mute {
                                     RequestBuffer.request(() -> e.getChannel().sendMessage(":white_check_mark: No expiration time found. Muting forever."));
                                     StringBuilder sb = new StringBuilder();
                                     for (int i = 3; i < content.length; i++) {
-                                        sb.append(content[i] + " ");
+                                        sb.append(content[i]).append(" ");
                                     }
                                     if (sb.toString().length() == 0) {
                                         this.message = "No reason provided.";
