@@ -22,14 +22,10 @@ public class EditBoard {
     private static FileConfiguration config = Main.get().getConfig();
     private static final String API_KEY = config.getString("settings.trello.API-key");
     private static final String API_TOKEN = config.getString("settings.trello.API-token");
+
     private static Trello botTrello = new TrelloImpl(API_KEY, API_TOKEN);
-    private static boolean keyAndToken;
 
     // Check if the keys are there, thus preventing errors spamming console and such.
-    private static boolean checkPresenceOfKeys(){
-        keyAndToken = !API_KEY.isEmpty() && !API_TOKEN.isEmpty();
-        return keyAndToken;
-    }
 
     /* Create board
      * General Issues Board ID: 5b159d93431c9a85db11a4f1
@@ -42,19 +38,15 @@ public class EditBoard {
      * List ID: 5b15ac6db7100d5b46e29774
      */
     public static void createCardInReports(String cardName, String cardDesc) {
-        if (!checkPresenceOfKeys()) {
-        } else {
-            System.out.println(true);
-            String reportsID = "5b15ac6db7100d5b46e29774";
-            String name = cardName;
-            String desc = cardDesc;
-            Map<String, String> descMap = new HashMap<String, String>();
-            descMap.put("desc", desc);
+        System.out.println(true);
+        String reportsID = "5b15ac6db7100d5b46e29774";
+        String name = cardName;
+        String desc = cardDesc;
+        Map<String, String> descMap = new HashMap<String, String>();
+        descMap.put("desc", desc);
 
-            // Create card
-
-            Card card = botTrello.createCard(reportsID, name, descMap);
-        }
+        // Create card
+        Card card = botTrello.createCard(reportsID, name, descMap);
     }
     /* TODO: Add label support
      * private void createCardInReports(String name, String desc, int labelChoice){}

@@ -63,23 +63,23 @@ public class ReportEvent {
          */
         String fullReport = report.getContent();
         if (!fullReport.contains("Title of Issue:")) {
-            falseFlags.add("Title.");
+            falseFlags.add("Title");
             isValidReport = false;
         }
         if (!fullReport.contains("MC or Discord Related:")) {
-            falseFlags.add("Relation.");
+            falseFlags.add("Relation");
             isValidReport = false;
         }
         if (!fullReport.contains("MC Username:")) {
-            falseFlags.add("MC Username.");
+            falseFlags.add("MC Username");
             isValidReport = false;
         }
         if (!fullReport.contains("World/Channel:")) {
-            falseFlags.add("World or channel.");
+            falseFlags.add("World or channel");
             isValidReport = false;
         }
         if (!fullReport.contains("Description:")) {
-            falseFlags.add("Description.");
+            falseFlags.add("Description");
             isValidReport = false;
         }
         if (isValidReport){
@@ -99,7 +99,11 @@ public class ReportEvent {
      * If isValidReport is false, no card will be created as the message could not be verified.
      */
     public void officiallyFileReport() {
+        System.out.println("CALLED FILE REPORT METHOD");
+
         if (!isValidReport) return;
+
+        System.out.println("MOVING ON TO TRELLO METHOD");
 
         // Create the card fields
         String fullReport = report.getContent();
