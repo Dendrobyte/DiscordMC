@@ -5,7 +5,7 @@ This is a plugin that runs on a Minecraft server, and acts as a bridge between t
 The plugin uses [Discord4J](https://discord4j.com/) as the main Library to communicate with Discord, and we therefore encourage you to check their documentation, if you wish to modify this code.
 
 ## Setting up the bot
-In order to use this bot, the config must be configured correctly. An example of this, can be found below
+In order to use this bot, the config must be configured correctly. An example of how the config ***should*** look:
 ```yaml
 settings:
   token: 'YOUR_TOKEN_HEER'
