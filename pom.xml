@@ -24,13 +24,21 @@
     </properties>
 
     <repositories>
+        <!--Spigot-->
         <repository>
             <id>spigot-repo</id>
             <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
         </repository>
+        <!--Jitpack-->
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
+        </repository>
+        <!--Trello4j-->
+        <repository>
+            <id>joelso-mvn-repo</id>
+            <name>joelso github mvn repo</name>
+            <url>https://raw.github.com/joelso/joelso-mvn-repo/master/snapshots/</url>
         </repository>
     </repositories>
 
@@ -139,6 +147,12 @@
             <groupId>net.sf.trove4j</groupId>
             <artifactId>trove4j</artifactId>
             <version>3.0.3</version>
+        </dependency>
+        <!--Trello4j-->
+        <dependency>
+            <groupId>org.trello4j</groupId>
+            <artifactId>trello4j</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
