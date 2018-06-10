@@ -24,26 +24,23 @@ public class InGameCommand implements CommandExecutor {
         if (cs.hasPermission("discord.admin")) {
             switch (args[0]) {
                 case "logout":
-                    RequestBuffer.request(() -> {
-                        if (!Main.getClient().isLoggedIn()) {
-                            Bukkit.getServer().getLogger().warning(cs.getName() + " tried to log the bot out. The bot was already logged out");
-                            cs.sendMessage(ChatColor.RED + "Error. The bot is already logged out");
-                        } else {
-                            Bukkit.getServer().getLogger().info("Bot is logging out, per request of " + cs.getName());
-                            DiscordUtil.logout(Main.getClient());
-                        }
-                    });
+                    if (!Main.getClient().isLoggedIn()) {
+                        Bukkit.getServer().getLogger().warning(cs.getName() + " tried to log the bot out. The bot was already logged out");
+                        cs.sendMessage(ChatColor.RED + "Error. The bot is already logged out");
+                    } else {
+                        Bukkit.getServer().getLogger().info("Bot is logging out, per request of " + cs.getName());
+                        RequestBuffer.request(() -> DiscordUtil.logout(Main.getClient()));
+                    }
                     break;
                 case "login":
-                    RequestBuffer.request(() -> {
-                        if (Main.getClient().isLoggedIn()) {
-                            Bukkit.getServer().getLogger().warning(cs.getName() + " tried to log the bot in. The bot was already logged in");
-                            cs.sendMessage(ChatColor.RED + "Error. The bot is already logged in");
-                        } else {
-                            Bukkit.getServer().getLogger().info("Bot is logging in, per request of" + cs.getName());
-                            DiscordUtil.login(Main.getClient());
-                        }
-                    });
+                    if (Main.getClient().isLoggedIn()) {
+                        Bukkit.getServer().getLogger().warning(cs.getName() + " tried to log the bot in. The bot was already logged in");
+                        cs.sendMessage(ChatColor.RED + "Error. The bot is already logged in");
+                    } else {
+                        Bukkit.getServer().getLogger().info("Bot is logging in, per request of" + cs.getName());
+                        RequestBuffer.request(() -> DiscordUtil.login(Main.getClient()));
+                    }
+
                     break;
                 case "testlog":
                     long channel = DiscordEventListener.getLogChannel();

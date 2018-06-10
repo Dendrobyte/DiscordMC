@@ -9,9 +9,7 @@ settings:
   announce-channel: ""
   mute-role: ""
   voice-mute-role: ""
-  discord_commands:
-    enabled: true
-    command_prefix: 'ob!'
+  command_prefix: 'ob!'
 
 ticket-id: 0
 case-id: 0
