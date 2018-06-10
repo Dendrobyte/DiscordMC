@@ -145,4 +145,31 @@ public class EmbedUtils {
                 .withTitle("**You have been muted**")
                 .build();
     }
+
+    /*
+     * Sends a message to a user regarding proper report criteria.
+     * Method used in checkValidity()
+     */
+    public static EmbedObject incorrectReportEmbed(IUser reporter){
+        return new EmbedBuilder().withColor(new Color(128,0, 128))
+                .withAuthorName("Incorrect Format")
+                .withTitle("You've formatted your issue report incorrectly!")
+                .withDescription("Please structure your issue report WITH THE FOLLOWING FIELDS (feel free to copy and paste) - \nTitle of Issue: \nMC or Discord Related: \nMC Username: \nWorld/Channel: \nDescription:")
+                .withFooterText("Your MC username lets us know who you are in-game, even if your issue is not MC related. Thank you!")
+                .withThumbnail("http://0x0.st/s254.png")
+                .build();
+    }
+
+    /*
+     * Sends a message to a user informing them of a successful report.
+     * Method used in officiallyFileReport()
+     */
+    public static EmbedObject correctReportEmbed(IUser reporter){
+        return new EmbedBuilder().withColor(new Color(128, 0, 128))
+                .withAuthorName("Issue report submitted successfully!")
+                .withTitle("We have received your issue report and it has been filed away!")
+                .withDescription("Thank you for reporting the issue. Please contact a staff member if this is an URGENT issue, such as players fighting or an extremely game-breaking bug.\n " +
+                        "It is NOT URGENT if this is just something small being broken or a feature request. Thank you for your cooperation!")
+                .build();
+    }
 }
