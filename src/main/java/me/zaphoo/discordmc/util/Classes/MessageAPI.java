@@ -1,6 +1,7 @@
 package me.zaphoo.discordmc.util.Classes;
 
 import me.zaphoo.discordmc.Main;
+import me.zaphoo.discordmc.listener.DiscordEventListener;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.util.DiscordException;
@@ -21,51 +22,26 @@ public class MessageAPI {
      * @param message message to send
      */
     public static void sendToDiscord(long guild, long channel, String message) {
-        RequestBuffer.request(() -> {
-            try {
-                Main.getClient().getGuildByID(guild).getChannelByID(channel).sendMessage(message);
-
-            } catch (DiscordException e) {
-                plugin.getLogger().severe("Critical issue while sending message (string)... See stacktrace below");
-                e.printStackTrace();
-            } catch (MissingPermissionsException e) {
-                plugin.getLogger().severe("Your Bot is missing required permissions to perform this action! "
-                        + e.getErrorMessage());
-            }
-            return null;
-        });
+        try {
+            RequestBuffer.request(() -> Main.getClient().getGuildByID(guild).getChannelByID(channel).sendMessage(message));
+        } catch (DiscordException | MissingPermissionsException e) {
+            DiscordEventListener.reportError(e);
+        }
     }
 
     public static void sendToDiscord(long guild, long channel, IMessage message) {
-        RequestBuffer.request(() -> {
-            try {
-                Main.getClient().getGuildByID(guild).getChannelByID(channel).sendMessage(message.getContent());
-
-            } catch (DiscordException e) {
-                plugin.getLogger().severe("Critical issue while sending message (IMessage)... See stacktrace below");
-                e.printStackTrace();
-            } catch (MissingPermissionsException e) {
-                plugin.getLogger().severe("Your Bot is missing required permissions to perform this action! "
-                        + e.getErrorMessage());
-            }
-            return null;
-        });
+        try {
+            RequestBuffer.request(() -> Main.getClient().getGuildByID(guild).getChannelByID(channel).sendMessage(message.getContent()));
+        } catch (DiscordException | MissingPermissionsException e) {
+            DiscordEventListener.reportError(e);
+        }
     }
 
     public static void sendToDiscord(long guild, long channel, EmbedObject embedObject) {
-        RequestBuffer.request(() -> {
-            try {
-                Main.getClient().getGuildByID(guild).getChannelByID(channel).sendMessage(embedObject);
-
-            } catch (DiscordException e) {
-                plugin.getLogger().severe("Critical issue while sending embed... See stacktrace below");
-                e.printStackTrace();
-            } catch (MissingPermissionsException e) {
-                plugin.getLogger().severe("Your Bot is missing required permissions to perform this action! "
-                        + e.getErrorMessage());
-            }
-            return null;
-        });
+        try {
+            RequestBuffer.request(() -> Main.getClient().getGuildByID(guild).getChannelByID(channel).sendMessage(embedObject));
+        } catch (DiscordException | MissingPermissionsException e) {
+            DiscordEventListener.reportError(e);
+        }
     }
-
 }

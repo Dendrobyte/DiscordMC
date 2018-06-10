@@ -34,6 +34,7 @@ public class DiscordEventListener {
     private static long guild;
     private static long rules;
     private static int reactCount = 0;
+    private static List<IMessage> ID = new ArrayList<>();
 
     public DiscordEventListener(Main plugin) {
         this.plugin = plugin;
@@ -67,7 +68,7 @@ public class DiscordEventListener {
                 Main.get().reloadConfig();
                 MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Log channel set. Deleting this message in 30 seconds.");
             } else {
-                event.getMessage().reply(":x: You do not have permission to do that.");
+                RequestBuffer.request(() -> event.getMessage().reply(":x: You do not have permission to do that."));
             }
         }));
 
@@ -101,7 +102,7 @@ public class DiscordEventListener {
                 Main.get().getConfig().set("settings.guild", guild);
                 Main.get().saveConfig();
                 Main.get().reloadConfig();
-                RequestBuffer.request(() -> MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Announce channel set. Deleting this message in 30 seconds."));
+                MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Announce channel set. Deleting this message in 30 seconds.");
 
             } else {
                 RequestBuffer.request(() -> event.getMessage().reply(":x: You do not have permission to do that."));
@@ -137,7 +138,7 @@ public class DiscordEventListener {
                     });
 
                 } else {
-                    RequestBuffer.request(() -> MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":x: Please provide or tag the user, you wish to warn"));
+                    MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":x: Please provide or tag the user, you wish to warn");
                 }
             } else {
                 RequestBuffer.request(() -> event.getMessage().reply(":x: You do not have permission to do that."));
@@ -161,9 +162,9 @@ public class DiscordEventListener {
 
                     Bukkit.getServer().broadcastMessage(prefix + ChatColor.RED + event.getAuthor().getName() + "#" + event.getAuthor()
                             .getDiscriminator() + ChatColor.RESET + ChatColor.GRAY + " >> " + ChatColor.AQUA + message);
-                    RequestBuffer.request(() -> MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Message : \"**" + message + "**\" has been sent to the server"));
+                    MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Message : \"**" + message + "**\" has been sent to the server");
                 } else {
-                    RequestBuffer.request(() -> MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":x: Please provide a message to send to the server."));
+                    MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":x: Please provide a message to send to the server.");
                 }
             } else {
                 RequestBuffer.request(() -> event.getMessage().reply(":x: You do not have permission to do that."));
@@ -171,7 +172,7 @@ public class DiscordEventListener {
         }));
 
         commandMap.put("setticket", (event, args) -> {
-            event.getMessage().delete();
+            RequestBuffer.request(() -> event.getMessage().delete());
             if (IPermissionsUtil.hasPermission(event, Permissions.ADMINISTRATOR)) {
                 String[] arr = event.getMessage().getContent().split(" ");
                 if (arr.length == 3) {
@@ -191,12 +192,12 @@ public class DiscordEventListener {
         });
 
         commandMap.put("kill", (e, args) -> {
+            RequestBuffer.request(e.getMessage()::delete);
             if (IPermissionsUtil.hasPermission(e, Permissions.MANAGE_MESSAGES)) {
                 RequestBuffer.killAllRequests();
-                RequestBuffer.request(e.getMessage()::delete);
                 RequestBuffer.request(() -> e.getChannel().sendMessage(":white_check_mark: All pending requests were killed"));
             } else {
-                e.getChannel().sendMessage(":x: You do not have permission to do that.");
+                RequestBuffer.request(() -> e.getChannel().sendMessage(":x: You do not have permission to do that."));
             }
         });
 
@@ -205,19 +206,16 @@ public class DiscordEventListener {
             if (IPermissionsUtil.hasPermission(event, Permissions.ADMINISTRATOR)) {
                 String[] sarray = event.getMessage().getContent().split(" ");
                 if (sarray.length > 1) {
-                    RequestBuffer.request(() -> {
-                        StringBuilder stringBuilder = new StringBuilder();
-                        for (int i = 1; i < sarray.length; i++) {
-                            stringBuilder.append(sarray[i]).append(" ");
-                        }
-                        String message = stringBuilder.toString().trim();
-                        RequestBuffer.request(() -> {
-                            MessageAPI.sendToDiscord(guild, getAnnounce(), "**Announcement from " + event.getAuthor().getName() + "**\n" + event.getGuild().getEveryoneRole().mention() + ", " + message);
-                            MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Announcement made with the message \"" + message + "\"");
-                        });
-                    });
+
+                    StringBuilder stringBuilder = new StringBuilder();
+                    for (int i = 1; i < sarray.length; i++) {
+                        stringBuilder.append(sarray[i]).append(" ");
+                    }
+                    String message = stringBuilder.toString().trim();
+                        MessageAPI.sendToDiscord(guild, getAnnounce(), "**Announcement from " + event.getAuthor().getName() + "**\n" + event.getGuild().getEveryoneRole().mention() + ", " + message);
+                        MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Announcement made with the message \"" + message + "\"");
                 } else {
-                    RequestBuffer.request(() -> MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":x: Please provide a message to announce"));
+                    MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":x: Please provide a message to announce");
                 }
             } else {
                 RequestBuffer.request(() -> event.getMessage().reply(":x: You do not have permission to do that."));
@@ -248,9 +246,7 @@ public class DiscordEventListener {
 
         });
 
-        commandMap.put("poll", (event, args) ->
-
-        {
+        commandMap.put("poll", (event, args) -> {
             event.getMessage().delete();
             if (IPermissionsUtil.hasPermission(event, Permissions.ADMINISTRATOR)) {
                 String[] sarray = event.getMessage().getContent().split(" ");
@@ -267,48 +263,47 @@ public class DiscordEventListener {
                     MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), "Too many options provided... There must be between 2 and 6 options.");
                     return;
                 }
-                RequestBuffer.request(() -> {
-                    try {
-                        StringBuilder stringBuilder = new StringBuilder();
-                        for (int i = 1; i < sarray.length; i++) {
-                            stringBuilder.append(sarray[i]).append(" ");
-                        }
-                        String message = stringBuilder.toString().trim();
-                        String question = message.substring(0, message.indexOf('['));
-                        if (question.length() == 0) {
-                            MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), "Please provide a question for the poll.");
-                            return;
-                        }
-                        List<String> options = new ArrayList<>();
-                        for (int i = 0; i < count; i++) {
-                            try {
-                                String optionsRaw = message.substring(message.indexOf('[') + 1, message.indexOf(']'));
-                                if (optionsRaw.isEmpty()) {
-                                    MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), "One or more of the options did not contain an actual option. Please provide options for your options.");
-                                    return;
-                                }
-                                message = message.replaceAll("\\[" + optionsRaw + "]", "");
-                                options.add(optionsRaw);
-                            } catch (StringIndexOutOfBoundsException e) {
-                                e.printStackTrace();
-                                break;
-                            }
 
-                        }
-                        StringBuilder toReturn = new StringBuilder(event.getGuild().getEveryoneRole().mention() + ", **POLL** \n");
-                        toReturn.append(question).append("\n");
-                        for (int i = 0; i < options.size(); i++) {
-                            toReturn.append("Vote ").append(IVoteUtil.EMOJIS[i]).append(" for: ").append(options.get(i)).append("\n");
-                        }
-                        MessageAPI.sendToDiscord(guild, announce, toReturn.toString());
-                        setReactCount(options.size());
-                        MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), "Poll created, with the question: \"" + question + "\". The question has " + options.size() + " options.");
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                try {
+                    StringBuilder stringBuilder = new StringBuilder();
+                    for (int i = 1; i < sarray.length; i++) {
+                        stringBuilder.append(sarray[i]).append(" ");
                     }
-                });
+                    String message = stringBuilder.toString().trim();
+                    String question = message.substring(0, message.indexOf('['));
+                    if (question.length() == 0) {
+                        MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), "Please provide a question for the poll.");
+                        return;
+                    }
+                    List<String> options = new ArrayList<>();
+                    for (int i = 0; i < count; i++) {
+                        try {
+                            String optionsRaw = message.substring(message.indexOf('[') + 1, message.indexOf(']'));
+                            if (optionsRaw.isEmpty()) {
+                                MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), "One or more of the options did not contain an actual option. Please provide options for your options.");
+                                return;
+                            }
+                            message = message.replaceAll("\\[" + optionsRaw + "]", "");
+                            options.add(optionsRaw);
+                        } catch (StringIndexOutOfBoundsException e) {
+                            reportError(e);
+                            break;
+                        }
+
+                    }
+                    StringBuilder toReturn = new StringBuilder(event.getGuild().getEveryoneRole().mention() + ", **POLL** \n");
+                    toReturn.append(question).append("\n");
+                    for (int i = 0; i < options.size(); i++) {
+                        toReturn.append("Vote ").append(IVoteUtil.EMOJIS[i]).append(" for: ").append(options.get(i)).append("\n");
+                    }
+                    MessageAPI.sendToDiscord(guild, announce, toReturn.toString());
+                    setReactCount(options.size());
+                    MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), "Poll created, with the question: \"" + question + "\". The question has " + options.size() + " options.");
+                } catch (Exception e) {
+                    reportError(e);
+                }
             } else {
-                event.getMessage().reply(":x: You do not have permission to do that.");
+                RequestBuffer.request(() -> event.getMessage().reply(":x: You do not have permission to do that."));
             }
         });
     }
@@ -322,14 +317,16 @@ public class DiscordEventListener {
 
     static {
         baseCommands.put("help", ((event, args) -> {
-            RequestBuffer.request(() -> event.getMessage().delete());
-            event.getAuthor().getOrCreatePMChannel().sendMessage(HelpList.getHelpEmbed());
-            RequestBuffer.request(() -> event.getChannel().sendMessage(":white_check_mark: A message with the help list, has been sent to you in a DM."));
+            RequestBuffer.request(() -> {
+                event.getMessage().delete();
+                event.getAuthor().getOrCreatePMChannel().sendMessage(HelpList.getHelpEmbed());
+                event.getChannel().sendMessage(":white_check_mark: A message with the help list, has been sent to you in a DM.");
+            });
         }));
 
         baseCommands.put("uptime", ((event, args) -> RequestBuffer.request(() -> {
-            event.getMessage().delete();
-            event.getChannel().sendMessage("This bot, and the server it is running on, have been up for " + DiscordUtil.getTotalUptime());
+            RequestBuffer.request(() -> event.getMessage().delete());
+            RequestBuffer.request(() -> event.getChannel().sendMessage("This bot, and the server it is running on, have been up for " + DiscordUtil.getTotalUptime()));
         })));
 
         baseCommands.put("remind", (event, args) -> {
@@ -347,9 +344,9 @@ public class DiscordEventListener {
         });
 
         baseCommands.put("deletereminder", (event, args) -> {
-            event.getMessage().delete();
+            RequestBuffer.request(() -> event.getMessage().delete());
             if (event.getMessage().getContent().split(" ").length != 2) {
-                event.getChannel().sendMessage(":x: Incorrect use of command. Refer to the help list, for correct use!");
+                RequestBuffer.request(() -> event.getChannel().sendMessage(":x: Incorrect use of command. Refer to the help list, for correct use!"));
                 return;
             }
 
@@ -364,7 +361,7 @@ public class DiscordEventListener {
                             Main.getRemindFile().set("count." + ID, --count);
                             Main.getRemindFile().set("reminders." + time, null);
                             Main.saveReminders();
-                            event.getChannel().sendMessage(":white_check_mark: Reminder deleted!");
+                            RequestBuffer.request(() -> event.getChannel().sendMessage(":white_check_mark: Reminder deleted!"));
                         }
                     }
 
@@ -377,6 +374,7 @@ public class DiscordEventListener {
         });
 
         baseCommands.put("reminders", (event, args) -> {
+            RequestBuffer.request(() -> event.getMessage().delete());
             try {
                 int count = (int) Main
                         .getRemindFile()
@@ -393,9 +391,9 @@ public class DiscordEventListener {
                                 .replaceAll("'", "")) != 0)
                         .count();
                 if (!event.getAuthor().getPermissionsForGuild(event.getGuild()).contains(IPermissionsUtil.MANAGE_MESSAGE)) {
-                    event.getChannel().sendMessage(":white_check_mark: You currently have `" + count + "` reminders. You have `" + (5 - count) + "` reminders left.");
+                    RequestBuffer.request(() -> event.getChannel().sendMessage(":white_check_mark: You currently have `" + count + "` reminders. You have `" + (5 - count) + "` reminders left."));
                 } else {
-                    event.getChannel().sendMessage(":white_check_mark: You currently have `" + count + "` reminders.");
+                    RequestBuffer.request(() -> event.getChannel().sendMessage(":white_check_mark: You currently have `" + count + "` reminders."));
                 }
             } catch (Exception e) {
                 reportError(e);
@@ -421,15 +419,17 @@ public class DiscordEventListener {
     public void userChat(MessageReceivedEvent event) {
         try {
             if (event.getChannel().isPrivate() && event.getClient().getApplicationOwner() != event.getAuthor()) {
-                event.getChannel().sendMessage(":x: This bot can not be used in private messages.");
+                RequestBuffer.request(() -> event.getChannel().sendMessage(":x: This bot can not be used in private messages."));
                 return;
             } else if (event.getAuthor() == event.getClient().getApplicationOwner() && event.getChannel().isPrivate()) {
                 if (event.getMessage().getContent().equalsIgnoreCase("statistics")) {
                     IChannel channel = event.getChannel();
-                    channel.sendMessage("This bot is connected to `" + Main.getClient().getGuilds().get(0).getUsers().size() + "` users.");
-                    channel.sendMessage("It has been used `" + Main.get().getConfig().getInt("uses") + "` times.");
+                    RequestBuffer.request(() -> {
+                        channel.sendMessage("This bot is connected to `" + Main.getClient().getGuilds().get(0).getUsers().size() + "` users.");
+                        channel.sendMessage("It has been used `" + Main.get().getConfig().getInt("uses") + "` times.");
+                    });
                 } else if (event.getMessage().getContent().startsWith("set listening")) {
-                    event.getClient().changePresence(StatusType.ONLINE, ActivityType.LISTENING, event.getMessage().getContent().substring(14));
+                    RequestBuffer.request(() -> event.getClient().changePresence(StatusType.ONLINE, ActivityType.LISTENING, event.getMessage().getContent().substring(14)));
                 } else if (event.getMessage().getContent().startsWith("message")) {
                     String[] message = event.getMessage().getContent().split(" ");
                     try {
@@ -438,7 +438,7 @@ public class DiscordEventListener {
                         for (int i = 2; i < message.length; i++) {
                             s.append(message[i]).append(" ");
                         }
-                        Main.getClient().getUserByID(l).getOrCreatePMChannel().sendMessage(s.toString());
+                        RequestBuffer.request(() -> Main.getClient().getUserByID(l).getOrCreatePMChannel().sendMessage(s.toString()));
                     } catch (Exception e) {
                         reportError(e);
                     }
@@ -459,7 +459,7 @@ public class DiscordEventListener {
             String command = message[0].substring(commandPrefix.length()).toLowerCase();
             List<String> argsList = new ArrayList<>(Arrays.asList(message));
             argsList.remove(0);
-            if (event.getMessage().getContent().length() == 3)
+            if (event.getMessage().getContent().length() == commandPrefix.length())
                 MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), HelpList.getHelpEmbed());
             if (commandMap.containsKey(command.toLowerCase())) {
                 commandMap.get(command).runCommand(event, argsList);
@@ -479,7 +479,7 @@ public class DiscordEventListener {
                 plugin.getLogger().warning("Your bot is not joined to any guild. Disabling plugin");
                 Main.get().getServer().getPluginManager().disablePlugin(Main.get());
             }
-            Main.getClient().changePresence(StatusType.ONLINE, ActivityType.LISTENING, Main.get().getConfig().getString("settings.discord_commands.command_prefix") + "!help"); // Change presence to online and display main help command
+            RequestBuffer.request(() -> Main.getClient().changePresence(StatusType.ONLINE, ActivityType.LISTENING, Main.get().getConfig().getString("settings.discord_commands.command_prefix") + "!help")); // Change presence to online and display main help command
 
             /*
             Using ICommandList.add we add commands to the help list. Provide command in camelCase and add description.
@@ -513,7 +513,7 @@ public class DiscordEventListener {
                     "\nA user can not have more than five reminders at a time." +
                     "\nFor use with *-d* flag, keep in mind the bot uses the EDT timezone." +
                     "\nUsage: ob!remind <time format> <message>" +
-                    "\nUsage: ob!remind -d <date> <month> <year> [hour] [minute]");
+                    "\nUsage: ob!remind -d <date> <month> <year> [hour minute] <message>");
             ICommandList.add("deleteReminder", "Removes the specified reminder, from your current queue of reminders. " +
                     "\nThe reminder ID can be found in your current reminders." +
                     "\nUsage: ob!deleteReminder <ID>");
@@ -571,7 +571,6 @@ public class DiscordEventListener {
     @EventSubscriber
     public void messageSent(MessageSendEvent e) { // Message sent from bot event
         try {
-            List<IMessage> ID = new ArrayList<>(); // Messages logged in memory
             if (e.getMessage().getContent().startsWith("This bot, and the server it is running on, have been up for")
                     || e.getMessage().getContent().startsWith(":white_check_mark:")
                     || e.getMessage().getContent().endsWith("you have too many reminders. The maximum is 5.")
@@ -690,13 +689,13 @@ public class DiscordEventListener {
             if (caze.equalsIgnoreCase("warning")) { // If ticket is a warning
                 Main.get().getConfig().set("ticket-id", ID);  // Get the long ID of ticket
                 Main.get().saveConfig(); // Save config
-                e.getChannel().sendMessage(":white_check_mark: The warning tickets was successfully set to " + ID); // Send message that ticket has been set
+                RequestBuffer.request(() -> e.getChannel().sendMessage(":white_check_mark: The warning tickets was successfully set to " + ID)); // Send message that ticket has been set
             } else if (caze.equalsIgnoreCase("ban")) { // If ticket is ban
                 Main.get().getConfig().set("case-id", ID); // Get the long ID of ticket
                 Main.get().saveConfig(); // Save config
-                e.getChannel().sendMessage(":white_check_mark: The ban tickets was successfully set to " + ID); // Send message that ticket has been set
+                RequestBuffer.request(() -> e.getChannel().sendMessage(":white_check_mark: The ban tickets was successfully set to " + ID)); // Send message that ticket has been set
             } else { // If none of above, throw NPE
-                e.getChannel().sendMessage(":x: " + caze + " is not a valid category. Must be ban or warning.");
+                RequestBuffer.request(() -> e.getChannel().sendMessage(":x: " + caze + " is not a valid category. Must be ban or warning."));
             }
         } catch (Exception e1) {
             reportError(e1); // Send exception to bot owner
