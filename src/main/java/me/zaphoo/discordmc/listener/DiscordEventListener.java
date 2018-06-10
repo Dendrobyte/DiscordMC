@@ -336,7 +336,7 @@ public class DiscordEventListener {
             if (Main.getRemindFile().getInt("count." + event.getAuthor().getStringID()) < 5 || IPermissionsUtil.hasPermission(event, Permissions.MANAGE_MESSAGES)) {
                 if (IRegexPatterns.isMatch(IRegexPatterns.TIME_MATCH, event.getMessage().getContent()) || IRegexPatterns.isMatch(IRegexPatterns.DATE_MATCH, event.getMessage().getContent())) {
                     Reminder r = new Reminder(event);
-                    event.getAuthor().getOrCreatePMChannel().sendMessage(EmbedUtils.scheduledReminder(r));
+                    RequestBuffer.request(() -> event.getAuthor().getOrCreatePMChannel().sendMessage(EmbedUtils.scheduledReminder(r)));
                 } else {
                     RequestBuffer.request(() -> event.getChannel().sendMessage(":x: Incorrect use of command. No date or time was provided"));
                 }
@@ -457,7 +457,7 @@ public class DiscordEventListener {
                 return;
             }
             String command = message[0].substring(commandPrefix.length()).toLowerCase();
-            List<String> argsList = new ArrayList<>(Arrays.asList(command));
+            List<String> argsList = new ArrayList<>(Arrays.asList(message));
             argsList.remove(0);
             if (event.getMessage().getContent().length() == 3)
                 MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), HelpList.getHelpEmbed());
@@ -598,7 +598,7 @@ public class DiscordEventListener {
                     @Override
                     public void run() {
                         try {
-                            Thread.currentThread().sleep(30000); // Wait 30 seconds
+                            sleep(30000); // Wait 30 seconds
                         } catch (InterruptedException e1) {
                             reportError(e1); // If interrupted, send stacktrace to owner
                         }
