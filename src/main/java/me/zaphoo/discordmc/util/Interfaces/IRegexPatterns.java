@@ -9,7 +9,7 @@ public interface IRegexPatterns {
 
     Pattern TIME_MATCH = Pattern.compile("((\\d+[dhm][\\s]?){1,3})");
     Pattern USER_MATCH = Pattern.compile("(<@(\\d+)>)");
-    DateFormat DATE_MATCHER = new SimpleDateFormat("MMMM d, yyyy");
+    Pattern DATE_MATCH = Pattern.compile("([0]?[1-9]|[1|2][0-9]|[3][0|1])[\\s./-]([0]?[1-9]|[1][0-2])[\\s./-]([0-9]{4}|[0-9]{2})(\\s([0-2][0-9])\\s?([0-5][0-9]))?");
 
     static boolean isMatch(Pattern patternToFind, String stringToMatch) {
         return patternToFind.matcher(stringToMatch).find();

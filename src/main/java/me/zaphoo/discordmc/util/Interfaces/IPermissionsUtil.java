@@ -16,6 +16,6 @@ public interface IPermissionsUtil {
 
     static boolean hasPermission(MessageReceivedEvent event, Permissions perm) {
 
-        return event.getAuthor().getPermissionsForGuild(event.getGuild()).contains(perm);
+        return event.getMessage().getAuthor().getPermissionsForGuild(event.getGuild()).contains(perm);
     }
 }

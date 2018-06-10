@@ -5,8 +5,6 @@ import sx.blah.discord.util.EmbedBuilder;
 
 import java.awt.*;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.Hashtable;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;

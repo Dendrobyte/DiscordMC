@@ -1,14 +1,18 @@
 package me.zaphoo.discordmc.Objects;
 
 import me.zaphoo.discordmc.Main;
+import me.zaphoo.discordmc.util.Interfaces.IPermissionsUtil;
 import me.zaphoo.discordmc.util.Interfaces.IRegexPatterns;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
+import sx.blah.discord.handle.obj.Permissions;
 
-import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
+import java.util.stream.Stream;
 
 public class Reminder {
 
@@ -22,19 +26,54 @@ public class Reminder {
 
     public Reminder(MessageReceivedEvent e) {
 
-        if (Main.getRemindFile().get("count." + e.getAuthor().getStringID()) != null) {
+        if (Main.getRemindFile().get("count." + e.getAuthor().getStringID()) != null) { // If count in reminder file is not null, counter is grabbed from reminder file
             count = Main.getRemindFile().getInt("count." + e.getAuthor().getStringID());
-        } else {
+        } else { // Else your count is set to 0
             count = 0;
         }
-        if (count < 5 /*|| e.getAuthor().getPermissionsForGuild(e.getGuild()).contains(IPermissionsUtil.MANAGE_MESSAGE)*/) {
+        if ((count < 5) || IPermissionsUtil.hasPermission(e, Permissions.MANAGE_MESSAGES)) { // Check if count is less than 5 or if author is staff
             this.message = e.getMessage().getContent();
-            Matcher matcher = IRegexPatterns.TIME_MATCH.matcher(this.message);
-            if (matcher.find()) {
-                if (matcher.group(0).split(" ").length <= 3) {
+            Matcher timeParse = IRegexPatterns.TIME_MATCH.matcher(this.message); // Grab regex patterns from IRegexPatterns
+            Matcher dateParse = IRegexPatterns.DATE_MATCH.matcher(this.message); // Grab regex patterns from IRegexPatterns
+            if (this.message.split(" ")[1].equalsIgnoreCase("-d")) {
+                if (dateParse.find()) {
 
 
-                    for (String match : matcher.group().split(" ")) {
+                    String[] dateParts = dateParse.group(0).split("([\\s./-])");
+                    if (dateParts.length == 3) {
+                        String date = dateParse.group(0) + " 0"+ (6 + new Random().nextInt(3)) + " "+ new Random().nextInt(60);
+
+                        dateParts = date.split("([\\s./-])");
+                    }
+                    if (dateParts[3].length() == 1) dateParts[3] = "0"+dateParts[3];
+                    StringBuilder stringBuilder = new StringBuilder();
+                    for (String s : dateParts) {
+                        stringBuilder.append(s).append(" ");
+                    }
+                    String date = stringBuilder.toString().trim();
+                    Date remindDate = getMatchedDate(date);
+
+
+                    if (remindDate.getTime() - System.currentTimeMillis() <= 0) {
+                        e.getChannel().sendMessage(":x: The date specified cannot be before right now.");
+                        return;
+                    }
+                    this.now = System.currentTimeMillis();
+                    this.then = remindDate.getTime();
+                    this.ID = ThreadLocalRandom.current().nextLong(1000L, 9999999999L);
+                    this.message = e.getMessage().getContent().substring(dateParse.end(), e.getMessage().getContent().length());
+                    Main.getRemindFile().set("count." + e.getAuthor().getStringID(), ++count);
+                    Main.getRemindFile().set("reminders." + then + "." + e.getAuthor().getStringID() + ".message", message);
+                    Main.getRemindFile().set("reminders." + then + "." + e.getAuthor().getStringID() + ".ID", ID);
+                    Main.saveReminders();
+                    e.getMessage().delete();
+                    e.getChannel().sendMessage(":white_check_mark: Reminder set!");
+                }
+            } else if (timeParse.find()) {
+                if (timeParse.group(0).split(" ").length <= 3) {
+
+
+                    for (String match : timeParse.group().split(" ")) {
                         if (match.endsWith("d")) days = Integer.parseInt(match.substring(0, match.indexOf('d')));
                         if (match.endsWith("h")) hours = Integer.parseInt(match.substring(0, match.indexOf('h')));
                         if (match.endsWith("m")) minutes = Integer.parseInt(match.substring(0, match.indexOf('m')));
@@ -50,7 +89,7 @@ public class Reminder {
                     then = now + this.days + this.hours + this.minutes;
                     ID = ThreadLocalRandom.current().nextLong(1000L, 9999999999L);
                     //ID = new Random().nextLong();
-                    this.message = e.getMessage().getContent().substring(matcher.end(), e.getMessage().getContent().length());
+                    this.message = e.getMessage().getContent().substring(timeParse.end(), e.getMessage().getContent().length());
                     Main.getRemindFile().set("count." + e.getAuthor().getStringID(), ++count);
                     Main.getRemindFile().set("reminders." + then + "." + e.getAuthor().getStringID() + ".message", message);
                     Main.getRemindFile().set("reminders." + then + "." + e.getAuthor().getStringID() + ".ID", ID);
@@ -67,72 +106,48 @@ public class Reminder {
         }
     }
 
-    /*public static void main(String[] args) {
-        while (true) {
-            //Pattern p = Pattern.compile("(\\b(0?[1-9]|[12]\\d|30|31)[^\\w\\d\\r\\n:](0?[1-9]|1[0-2])[^\\w\\d\\r\\n:](\\d{4}|\\d{2})\\b)|(\\b(0?[1-9]|1[0-2])[^\\w\\d\\r\\n:](0?[1-9]|[12]\\d|30|31)[^\\w\\d\\r\\n:](\\d{4}|\\d{2})\\b)");
-            Scanner scanner = new Scanner(System.in);
-            String string = scanner.nextLine();
+    /**
+     * Check if provided string matches a date
+     * @param date String to mach
+     * @return Matched date if any, else null
+     */
 
-            Date date = null;
-            for (DateFormat dateFormat : getDateFormats()) {
-                try {
-                    if (dateFormat.parse(string) != null) {
-                        date = dateFormat.parse(string);
-                    }
-                } catch (ParseException e) {
-                }
+    private static Date getMatchedDate(String date) {
+        return getDateFormats().stream().map(simpleDateFormat -> {
+            try {
+                return simpleDateFormat.parse(date);
+            } catch (ParseException e) {
+                e.printStackTrace();
             }
-            System.out.println(date);
-            System.out.println(date.getTime());
+            return null;
+        }).filter(Objects::nonNull).findFirst().orElse(null);
+    }
 
-        }
-    }*/
 
-    private static List<DateFormat> getDateFormats() {
-        DateFormat[] arr = new DateFormat[]{
-                new SimpleDateFormat("MMMM d yyyy"),
-                new SimpleDateFormat("MM d yyyy"),
-                new SimpleDateFormat("MMMM d yyyy HH mm"),
-                new SimpleDateFormat("MM d yyyy HH mm"),
-                new SimpleDateFormat("MMMM d yyyy HH mm"),
-                new SimpleDateFormat("MM d yyyy HH mm"),
-                new SimpleDateFormat("MMMM/d yyyy"),
-                new SimpleDateFormat("MM/d yyyy"),
-                new SimpleDateFormat("MMMM/d yyyy HH mm"),
-                new SimpleDateFormat("MM/d yyyy HH mm"),
-                new SimpleDateFormat("MMMM/d yyyy HH mm"),
-                new SimpleDateFormat("MM/d yyyy HH mm"),
-                new SimpleDateFormat("MMMM.d yyyy"),
-                new SimpleDateFormat("MM.d yyyy"),
-                new SimpleDateFormat("MMMM.d yyyy HH mm"),
-                new SimpleDateFormat("MM.d yyyy HH mm"),
-                new SimpleDateFormat("MMMM.d yyyy HH mm"),
-                new SimpleDateFormat("MM.d yyyy HH mm"),
-                new SimpleDateFormat("MMMM d yyyy HH:mm"),
-                new SimpleDateFormat("MM d yyyy HH:mm"),
-                new SimpleDateFormat("MMMM d yyyy HH:mm"),
-                new SimpleDateFormat("MM d yyyy HH:mm"),
-                new SimpleDateFormat("MMMM/d yyyy HH:mm"),
-                new SimpleDateFormat("MM/d yyyy HH:mm"),
-                new SimpleDateFormat("MMMM/d yyyy HH:mm"),
-                new SimpleDateFormat("MM/d yyyy HH:mm"),
-                new SimpleDateFormat("MMMM.d yyyy HH:mm"),
-                new SimpleDateFormat("MM.d yyyy HH:mm"),
-                new SimpleDateFormat("MMMM.d yyyy HH:mm"),
-                new SimpleDateFormat("MM.d yyyy HH:mm"),
-                new SimpleDateFormat("MMMM d yyyy HH.mm"),
-                new SimpleDateFormat("MM d yyyy HH.mm"),
-                new SimpleDateFormat("MMMM d yyyy HH.mm"),
-                new SimpleDateFormat("MM d yyyy HH.mm"),
-                new SimpleDateFormat("MMMM/d yyyy HH.mm"),
-                new SimpleDateFormat("MM/d yyyy HH.mm"),
-                new SimpleDateFormat("MMMM/d yyyy HH.mm"),
-                new SimpleDateFormat("MM/d yyyy HH.mm"),
-                new SimpleDateFormat("MMMM.d yyyy HH.mm"),
-                new SimpleDateFormat("MM.d yyyy HH.mm"),
-                new SimpleDateFormat("MMMM.d yyyy HH.mm"),
-                new SimpleDateFormat("MM.d yyyy HH.mm")
-        };
-        return Arrays.asList(arr);
+    /**
+     * Gets all valid date formats
+     * @return A list of valid date formats
+     */
+
+    private static List<SimpleDateFormat> getDateFormats() {
+        return Arrays.asList(
+                new SimpleDateFormat("d MM yyyy HH mm"),
+                new SimpleDateFormat("d/MM yyyy HH mm"),
+                new SimpleDateFormat("d.MM yyyy HH mm"),
+                new SimpleDateFormat("d MM yyyy HH:mm"),
+                new SimpleDateFormat("d/MM yyyy HH:mm"),
+                new SimpleDateFormat("d.MM yyyy HH:mm"),
+                new SimpleDateFormat("d MM yyyy HH.mm"),
+                new SimpleDateFormat("d/MM yyyy HH.mm"),
+                new SimpleDateFormat("d.MM yyyy HH.mm"),
+                new SimpleDateFormat("d MM-yyyy HH mm"),
+                new SimpleDateFormat("d/MM-yyyy HH mm"),
+                new SimpleDateFormat("d.MM-yyyy HH mm"),
+                new SimpleDateFormat("d MM-yyyy HH:mm"),
+                new SimpleDateFormat("d/MM-yyyy HH:mm"),
+                new SimpleDateFormat("d.MM-yyyy HH:mm"),
+                new SimpleDateFormat("d MM-yyyy HH.mm"),
+                new SimpleDateFormat("d/MM-yyyy HH.mm"),
+                new SimpleDateFormat("d.MM-yyyy HH.mm"));
     }
 }

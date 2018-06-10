@@ -333,9 +333,16 @@ public class DiscordEventListener {
         })));
 
         baseCommands.put("remind", (event, args) -> {
-            if (Main.getRemindFile().getInt("count." + event.getAuthor().getStringID()) < 5) {
-                Reminder r = new Reminder(event);
-                event.getAuthor().getOrCreatePMChannel().sendMessage(EmbedUtils.scheduledReminder(r));
+            if (Main.getRemindFile().getInt("count." + event.getAuthor().getStringID()) < 5 || IPermissionsUtil.hasPermission(event, Permissions.MANAGE_MESSAGES)) {
+                if (IRegexPatterns.isMatch(IRegexPatterns.TIME_MATCH, event.getMessage().getContent()) || IRegexPatterns.isMatch(IRegexPatterns.DATE_MATCH, event.getMessage().getContent())) {
+                    Reminder r = new Reminder(event);
+                    event.getAuthor().getOrCreatePMChannel().sendMessage(EmbedUtils.scheduledReminder(r));
+                } else {
+                    RequestBuffer.request(() -> event.getChannel().sendMessage(":x: Incorrect use of command. No date or time was provided"));
+                }
+
+            } else {
+                RequestBuffer.request(() -> event.getChannel().sendMessage(":x: You have too many reminders. The max is 5."));
             }
         });
 
@@ -504,7 +511,9 @@ public class DiscordEventListener {
             ICommandList.add("remind", "Creates a reminder for the user. The user will receive their reminder at the time specified." +
                     "\nTime format is in dhm format. Therefore `1d 2h 3m` is `1 day, 2 hours, and 3 minutes`" +
                     "\nA user can not have more than five reminders at a time." +
-                    "\nUsage: ob!remind <time format> <message>");
+                    "\nFor use with *-d* flag, keep in mind the bot uses the EDT timezone." +
+                    "\nUsage: ob!remind <time format> <message>" +
+                    "\nUsage: ob!remind -d <date> <month> <year> [hour] [minute]");
             ICommandList.add("deleteReminder", "Removes the specified reminder, from your current queue of reminders. " +
                     "\nThe reminder ID can be found in your current reminders." +
                     "\nUsage: ob!deleteReminder <ID>");
@@ -519,7 +528,7 @@ public class DiscordEventListener {
                     "\nUsage: ob!reminders");
 
 
-            Main.checkReminders(); // Check if any reminders have expired since last shutdown
+            Main.checkRemindersAndMutes(); // Check if any reminders have expired since last shutdown
 
             for (IChannel channel : event.getClient().getGuilds().get(0).getChannels()) { // Clean any messages from bot, in case of crash
                 MessageHistory messages = channel.getFullMessageHistory(); // Get the message history

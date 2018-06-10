@@ -22,7 +22,6 @@ import sx.blah.discord.util.RateLimitException;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Iterator;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -217,7 +216,7 @@ public class Main extends JavaPlugin {
         }
     }
 
-    public static void checkReminders() {
+    public static void checkRemindersAndMutes() {
         try {
             Timer t = new Timer();
             if (getRemindFile().getConfigurationSection("reminders") == null) {
@@ -234,7 +233,7 @@ public class Main extends JavaPlugin {
                             long time = Long.parseUnsignedLong(s.replaceAll("'", ""));
                             if (time < System.currentTimeMillis()) {
                                 long ID = Long.parseLong(getRemindFile().getConfigurationSection("reminders." + time).getKeys(true).iterator().next().replaceAll("'", ""));
-                                String message = getRemindFile().getString("reminders." + time + "." + ID);
+                                String message = getRemindFile().getString("reminders." + time + "." + ID + ".message");
                                 getClient().getUserByID(ID).getOrCreatePMChannel().sendMessage(EmbedUtils.scheduledRemind(message, time));
                                 int count = getRemindFile().getInt("count." + ID);
                                 getRemindFile().set("count." + ID, --count);
