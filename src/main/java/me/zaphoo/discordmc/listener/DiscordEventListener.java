@@ -460,7 +460,7 @@ public class DiscordEventListener {
             List<String> argsList = new ArrayList<>(Arrays.asList(message));
             argsList.remove(0);
             if (event.getMessage().getContent().length() == commandPrefix.length())
-                MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), HelpList.getHelpEmbed());
+                RequestBuffer.request(() -> event.getAuthor().getOrCreatePMChannel().sendMessage(HelpList.getHelpEmbed()));
             if (commandMap.containsKey(command.toLowerCase())) {
                 commandMap.get(command).runCommand(event, argsList);
             } else if (baseCommands.containsKey(command.toLowerCase())) {
@@ -479,7 +479,7 @@ public class DiscordEventListener {
                 plugin.getLogger().warning("Your bot is not joined to any guild. Disabling plugin");
                 Main.get().getServer().getPluginManager().disablePlugin(Main.get());
             }
-            RequestBuffer.request(() -> Main.getClient().changePresence(StatusType.ONLINE, ActivityType.LISTENING, Main.get().getConfig().getString("settings.discord_commands.command_prefix") + "!help")); // Change presence to online and display main help command
+            RequestBuffer.request(() -> Main.getClient().changePresence(StatusType.ONLINE, ActivityType.LISTENING, Main.get().getConfig().getString("settings.discord_commands.command_prefix") + "help")); // Change presence to online and display main help command
 
             /*
             Using ICommandList.add we add commands to the help list. Provide command in camelCase and add description.
