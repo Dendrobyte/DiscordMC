@@ -4,7 +4,6 @@ import me.zaphoo.discordmc.Objects.Mute;
 import me.zaphoo.discordmc.Objects.Reminder;
 import me.zaphoo.discordmc.listener.DiscordEventListener;
 import sx.blah.discord.api.internal.json.objects.EmbedObject;
-import sx.blah.discord.handle.impl.obj.Embed;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IGuild;
 import sx.blah.discord.handle.obj.IUser;
@@ -12,15 +11,12 @@ import sx.blah.discord.util.EmbedBuilder;
 
 import java.awt.*;
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.temporal.TemporalAccessor;
 import java.util.Date;
-import java.util.HashMap;
 
 public class EmbedUtils {
 
     public static EmbedObject warningToUser(IUser warned, IUser warnee, long ticketID, String reason, IGuild guild) {
-        IChannel rulesChan = guild.getChannelByID(DiscordEventListener.getRules());
+        IChannel rulesChan = guild.getChannelByID(DiscordEventListener.getRulesChannel());
         EmbedBuilder eb = new EmbedBuilder();
         eb.withTitle("__**Warning**__")
                 .withDesc("You have been warned for: " + reason + ". " +

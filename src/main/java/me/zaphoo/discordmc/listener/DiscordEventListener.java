@@ -29,24 +29,24 @@ import java.util.*;
 public class DiscordEventListener {
     private final Main plugin;
     private final String commandPrefix;
-    private static long channel;
-    private static long announce;
+    private static long logChannel;
+    private static long announceChannel;
     private static long guild;
-    private static long rules;
+    private static long rulesChannel;
     private static int reactCount = 0;
     private static List<IMessage> ID = new ArrayList<>();
 
     public DiscordEventListener(Main plugin) {
         this.plugin = plugin;
         this.commandPrefix = plugin.getConfig().getString("settings.discord_commands.command_prefix", "ob!");
-        channel = Long.parseUnsignedLong(plugin.getConfig().getString("settings.log-channel", "00"));
+        logChannel = Long.parseUnsignedLong(plugin.getConfig().getString("settings.log-logChannel", "00"));
         guild = Long.parseUnsignedLong(plugin.getConfig().getString("settings.guild", "00"));
-        rules = Long.parseUnsignedLong(plugin.getConfig().getString("settings.rules-channel", "00"));
-        announce = Long.parseUnsignedLong(plugin.getConfig().getString("settings.announce-channel", "00"));
+        rulesChannel = Long.parseUnsignedLong(plugin.getConfig().getString("settings.rulesChannel-logChannel", "00"));
+        announceChannel = Long.parseUnsignedLong(plugin.getConfig().getString("settings.announceChannel-logChannel", "00"));
     }
 
-    public static long getRules() {
-        return rules;
+    public static long getRulesChannel() {
+        return rulesChannel;
     }
 
     private static HashMap<String, ICommand> commandMap = new HashMap<>();
@@ -62,11 +62,11 @@ public class DiscordEventListener {
             if (IPermissionsUtil.hasPermission(event, Permissions.VIEW_AUDIT_LOG)) {
                 long chan = event.getChannel().getLongID();
                 long guild = event.getGuild().getLongID();
-                Main.get().getConfig().set("settings.log-channel", chan);
+                Main.get().getConfig().set("settings.log-logChannel", chan);
                 Main.get().getConfig().set("settings.guild", guild);
                 Main.get().saveConfig();
                 Main.get().reloadConfig();
-                MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Log channel set. Deleting this message in 30 seconds.");
+                MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Log logChannel set. Deleting this message in 30 seconds.");
             } else {
                 RequestBuffer.request(() -> event.getMessage().reply(":x: You do not have permission to do that."));
             }
@@ -83,11 +83,11 @@ public class DiscordEventListener {
             if (IPermissionsUtil.hasPermission(event, Permissions.VIEW_AUDIT_LOG)) {
                 long chan = event.getChannel().getLongID();
                 long guild = event.getGuild().getLongID();
-                Main.get().getConfig().set("settings.rules-channel", chan);
+                Main.get().getConfig().set("settings.rulesChannel-logChannel", chan);
                 Main.get().getConfig().set("settings.guild", guild);
                 Main.get().saveConfig();
                 Main.get().reloadConfig();
-                MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Rules channel set. Deleting this message in 30 seconds.");
+                MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Rules logChannel set. Deleting this message in 30 seconds.");
             } else {
                 RequestBuffer.request(() -> event.getMessage().reply(":x: You do not have permission to do that."));
             }
@@ -98,11 +98,11 @@ public class DiscordEventListener {
             if (IPermissionsUtil.hasPermission(event, Permissions.VIEW_AUDIT_LOG)) {
                 long chan = event.getChannel().getLongID();
                 long guild = event.getGuild().getLongID();
-                Main.get().getConfig().set("settings.announce-channel", chan);
+                Main.get().getConfig().set("settings.announceChannel-logChannel", chan);
                 Main.get().getConfig().set("settings.guild", guild);
                 Main.get().saveConfig();
                 Main.get().reloadConfig();
-                MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Announce channel set. Deleting this message in 30 seconds.");
+                MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Announce logChannel set. Deleting this message in 30 seconds.");
 
             } else {
                 RequestBuffer.request(() -> event.getMessage().reply(":x: You do not have permission to do that."));
@@ -134,7 +134,7 @@ public class DiscordEventListener {
                     RequestBuffer.request(() -> {
                         warned.getOrCreatePMChannel().sendMessage(EmbedUtils.warningToUser(warned, event.getAuthor(), ticket, reason, event.getGuild()));
                         warned.getOrCreatePMChannel().sendMessage("You can not reply to this message");
-                        MessageAPI.sendToDiscord(getGuild(), getChannel(), EmbedUtils.warningToChannel(warned, event.getAuthor(), ticket, reason, event.getGuild()));
+                        MessageAPI.sendToDiscord(getGuild(), getLogChannel(), EmbedUtils.warningToChannel(warned, event.getAuthor(), ticket, reason, event.getGuild()));
                     });
 
                 } else {
@@ -201,7 +201,7 @@ public class DiscordEventListener {
             }
         });
 
-        commandMap.put("announce", (event, args) -> {
+        commandMap.put("announceChannel", (event, args) -> {
             RequestBuffer.request(() -> event.getMessage().delete());
             if (IPermissionsUtil.hasPermission(event, Permissions.ADMINISTRATOR)) {
                 String[] sarray = event.getMessage().getContent().split(" ");
@@ -212,10 +212,10 @@ public class DiscordEventListener {
                         stringBuilder.append(sarray[i]).append(" ");
                     }
                     String message = stringBuilder.toString().trim();
-                        MessageAPI.sendToDiscord(guild, getAnnounce(), "**Announcement from " + event.getAuthor().getName() + "**\n" + event.getGuild().getEveryoneRole().mention() + ", " + message);
+                        MessageAPI.sendToDiscord(guild, getAnnounceChannel(), "**Announcement from " + event.getAuthor().getName() + "**\n" + event.getGuild().getEveryoneRole().mention() + ", " + message);
                         MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Announcement made with the message \"" + message + "\"");
                 } else {
-                    MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":x: Please provide a message to announce");
+                    MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":x: Please provide a message to announceChannel");
                 }
             } else {
                 RequestBuffer.request(() -> event.getMessage().reply(":x: You do not have permission to do that."));
@@ -296,7 +296,7 @@ public class DiscordEventListener {
                     for (int i = 0; i < options.size(); i++) {
                         toReturn.append("Vote ").append(IVoteUtil.EMOJIS[i]).append(" for: ").append(options.get(i)).append("\n");
                     }
-                    MessageAPI.sendToDiscord(guild, announce, toReturn.toString());
+                    MessageAPI.sendToDiscord(guild, announceChannel, toReturn.toString());
                     setReactCount(options.size());
                     MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), "Poll created, with the question: \"" + question + "\". The question has " + options.size() + " options.");
                 } catch (Exception e) {
@@ -403,8 +403,8 @@ public class DiscordEventListener {
 
     }
 
-    private static long getAnnounce() {
-        return announce;
+    private static long getAnnounceChannel() {
+        return announceChannel;
     }
 
     private static int getReactCount() {
@@ -492,18 +492,18 @@ public class DiscordEventListener {
                     "\nUsage: ob!uptime");
             ICommandList.add("serverAnnounce", "Broadcasts a message to the host server." +
                     "\nUsage: ob!serverAnnounce <message>");
-            ICommandList.add("setLogChannel", "Set the channel where all warnings are logged." +
+            ICommandList.add("setLogChannel", "Set the logChannel where all warnings are logged." +
                     "\nUsage: ob!setLogChannel");
-            ICommandList.add("SetRulesChannel", "Set the channel where all rules are listed." +
-                    "\nThis channel will be embedded in an embed sent to a warned user." +
+            ICommandList.add("SetRulesChannel", "Set the logChannel where all rulesChannel are listed." +
+                    "\nThis logChannel will be embedded in an embed sent to a warned user." +
                     "\nUsage: ob!setRulesChannel");
             ICommandList.add("warn", "Warn a user. The user will get a direct message, and the warning will be logged." +
                     "\nUsage: ob!warn @<user> <reason>");
-            ICommandList.add("setAnnounceChannel", "Set the channel where all announcements are made." +
+            ICommandList.add("setAnnounceChannel", "Set the logChannel where all announcements are made." +
                     "\nUsage: ob!setAnnounceChannel");
-            ICommandList.add("announce", "Broadcast a message to the announcement channel." +
-                    "\nUsage: ob!announce <message>");
-            ICommandList.add("poll", "Create a poll in the announcement channel, for everyone to vote." +
+            ICommandList.add("announceChannel", "Broadcast a message to the announcement logChannel." +
+                    "\nUsage: ob!announceChannel <message>");
+            ICommandList.add("poll", "Create a poll in the announcement logChannel, for everyone to vote." +
                     "\nThe size of the poll varies based on the amount of options, the users are given." +
                     "\nOptions must be enclosed in [...] in order to work." +
                     "\nThere can not be more than 6 options in a poll." +
@@ -561,7 +561,7 @@ public class DiscordEventListener {
     public static void reportError(Exception e) { // Method for reporting errors to bot owner instead of console
 
         IUser master = Main.getClient().getApplicationOwner(); // Get the bot owner
-        IPrivateChannel channel = master.getOrCreatePMChannel(); // Get a private channel with owner
+        IPrivateChannel channel = master.getOrCreatePMChannel(); // Get a private logChannel with owner
         RequestBuffer.request(() -> { // Prevent ratelimiting;
             channel.sendMessage(":warning: An error occurred! :warning:"); // Send warning to bot owner
             channel.sendMessage("```fix\n" + ExceptionUtils.getFullStackTrace(e) + "\n```"); // Send stacktrace to bot owner
@@ -592,7 +592,7 @@ public class DiscordEventListener {
                     final int j = i;
                     RequestBuffer.request(() -> e.getMessage().addReaction(IVoteUtil.EMOJIS[j]));
                 }
-            } else if (e.getMessage().getContent().split(" ").length == 9 && e.getMessage().getContent().endsWith(" channel set. Deleting this message in 30 seconds.")) { // If message is channel setter
+            } else if (e.getMessage().getContent().split(" ").length == 9 && e.getMessage().getContent().endsWith(" logChannel set. Deleting this message in 30 seconds.")) { // If message is logChannel setter
                 Thread thread = new Thread(e.getMessage().getStringID()) {  // Create new Thread
                     @Override
                     public void run() {
@@ -630,7 +630,7 @@ public class DiscordEventListener {
                 String reason = entry.getReason().orElse(bannedBy + " banned " + e.getUser().getName() + " without providing a reason."); // If no reason is provided, tell, else get reason
                 MessageAPI.sendToDiscord( // Custom sendMessage
                         guild, // Guild to send to
-                        channel, // Channel to send to
+                        logChannel, // Channel to send to
                         EmbedUtils.banToChannel( // Get Embed
                                 e.getUser(), // Get banned user
                                 bannedBy, // Get who banned
@@ -644,7 +644,7 @@ public class DiscordEventListener {
                 });
             } else {
                 RequestBuffer.request(() -> { // Prevent ratelimit
-                    MessageAPI.sendToDiscord(guild, channel, ":x: Please make sure that the bot has access the right permissions. " +
+                    MessageAPI.sendToDiscord(guild, logChannel, ":x: Please make sure that the bot has access the right permissions. " +
                             "Permissions missing: " + Permissions.VIEW_AUDIT_LOG); // Tell sender that the bot does not have access to the audit log
                 });
             }
@@ -654,8 +654,8 @@ public class DiscordEventListener {
         }
     }
 
-    public static long getChannel() { // Gets channel from config
-        return channel;
+    public static long getLogChannel() { // Gets logChannel from config
+        return logChannel;
     }
 
     public static long getGuild() { // Gets guild from config

@@ -46,7 +46,7 @@ public class InGameCommand implements CommandExecutor {
                     });
                     break;
                 case "testlog":
-                    long channel = DiscordEventListener.getChannel();
+                    long channel = DiscordEventListener.getLogChannel();
                     long guild = DiscordEventListener.getGuild();
                     MessageAPI.sendToDiscord(guild, channel, "Test log");
                     break;
