@@ -11,13 +11,18 @@ settings:
   token: 'YOUR_TOKEN_HEER'
   chat-prefix: "§bDiscord: "
 
-  guild: "455334454861496320" #ID of your guild
-  log-channel: "455334598331596801" #ID of your log channel
-  rules-channel: "455334652719267840" #ID of your rules channel
-  announce-channel: "455334626852995094" #ID of your announcements channel
+  guild: "" #ID of your guild
+  log-channel: "" #ID of your log channel
+  rules-channel: "" #ID of your rules channel
+  announce-channel: "" #ID of your announcements channel
   mute-role: "" #ID of a role that prevents user to chat
   voice-mute-role: "" #ID of a role that prevents user from joining voice chat
   command_prefix: 'ob!' #Prefix for any bot commands
+  
+  trello:
+    enabled: true #Should this be enabled
+    API-key: "" #API key for the trello board you want to use
+    token: "" #Trello token
 
 #These should be left as they are
 ticket-id: 0 
