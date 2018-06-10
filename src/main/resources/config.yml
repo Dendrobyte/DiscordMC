@@ -10,12 +10,13 @@ settings:
   announce-channel: ""
   mute-role: ""
   voice-mute-role: ""
+  reports-channel: ""
   command_prefix: 'ob!'
 
   trello:
     enabled: true
     API-key: ""
-    token: ""
+    API-token: ""
 
 
 ticket-id: 0

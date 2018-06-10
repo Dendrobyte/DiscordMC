@@ -4,11 +4,27 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>Zaph-x</groupId>
+    <groupId>eu.manuelgu</groupId>
     <artifactId>DiscordMC</artifactId>
     <version>1.5.0</version>
     <name>DiscordMC</name>
-    <description>Gateway between Discord and Spigot</description>
+    <description>A Discord to Minecraft Chat Gateway</description>
+
+    <developers>
+        <!--Why is this here?-->
+        <developer>
+            <id>manuelgu</id>
+            <name>manuelgu</name>
+            <email>code@manuelgu.eu</email>
+            <url>https://manuelgu.eu</url>
+        </developer>
+        <developer>
+            <id>Mobkinz78</id>
+            <name>Mark</name>
+            <email>Mobkinz78@gmail.com</email>
+            <url>http://www.markbacon78.org</url>
+        </developer>
+    </developers>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -25,19 +41,12 @@
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
-
         <!--Trello4j-->
-=======
-
         <repository>
             <id>joelso-mvn-repo</id>
             <name>joelso github mvn repo</name>
             <url>https://raw.github.com/joelso/joelso-mvn-repo/master/snapshots/</url>
         </repository>
-
-=======
-
-
     </repositories>
 
     <build>
@@ -106,12 +115,6 @@
     </build>
 
     <dependencies>
-        <!--Trello4J-->
-        <dependency>
-            <groupId>org.trello4j</groupId>
-            <artifactId>trello4j</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
         <!--Spigot-->
         <dependency>
             <groupId>org.spigotmc</groupId>
