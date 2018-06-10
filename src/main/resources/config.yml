@@ -3,15 +3,20 @@ settings:
   token: ''
   chat-prefix: "§bDiscord: "
 
+
   guild: ""
   log-channel: ""
   rules-channel: ""
   announce-channel: ""
   mute-role: ""
   voice-mute-role: ""
-  discord_commands:
+  command_prefix: 'ob!'
+
+  trello:
     enabled: true
-    command_prefix: 'ob!'
+    API-key: ""
+    token: ""
+
 
 ticket-id: 0
 case-id: 0
