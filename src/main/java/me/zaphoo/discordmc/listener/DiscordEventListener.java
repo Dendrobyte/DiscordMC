@@ -26,6 +26,14 @@ import sx.blah.discord.util.RequestBuffer;
 
 import java.util.*;
 
+/*
+ * The class for capturing any message sent, and check if the message is a command or just a message.
+ * Any messages prefixed with the prefix specified in the config (default is ob!) should be considered a command
+ * and handled as that. If the message is sent in a private chat, it should be ignored and user should be let known,
+ * that private channels are not valid channels (Unless that user is the application owner).
+ */
+
+
 public class DiscordEventListener {
     private final Main plugin;
     private final String commandPrefix;
@@ -36,6 +44,11 @@ public class DiscordEventListener {
     private static int reactCount = 0;
     private static List<IMessage> ID = new ArrayList<>();
 
+    /**
+     * The constructor for the event listener class
+     *
+     * @param plugin The main class.
+     */
     public DiscordEventListener(Main plugin) {
         this.plugin = plugin;
         this.commandPrefix = plugin.getConfig().getString("settings.command_prefix", "ob!");
@@ -45,10 +58,18 @@ public class DiscordEventListener {
         announceChannel = Long.parseUnsignedLong(plugin.getConfig().getString("settings.announceChannel-logChannel", "00"));
     }
 
+    /**
+     * Get the ID if the rules channel
+     *
+     * @return returns the rules channel
+     */
     public static long getRulesChannel() {
         return rulesChannel;
     }
 
+    /**
+     * For simplicity, any command that requires special permissions, will go into this map
+     */
     private static HashMap<String, ICommand> commandMap = new HashMap<>();
 
     /*
@@ -66,7 +87,7 @@ public class DiscordEventListener {
                 Main.get().getConfig().set("settings.guild", guild);
                 Main.get().saveConfig();
                 Main.get().reloadConfig();
-                MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Log logChannel set. Deleting this message in 30 seconds.");
+                MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Log channel set. Deleting this message in 30 seconds.");
             } else {
                 RequestBuffer.request(() -> event.getMessage().reply(":x: You do not have permission to do that."));
             }
@@ -87,7 +108,7 @@ public class DiscordEventListener {
                 Main.get().getConfig().set("settings.guild", guild);
                 Main.get().saveConfig();
                 Main.get().reloadConfig();
-                MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Rules logChannel set. Deleting this message in 30 seconds.");
+                MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Rules channel set. Deleting this message in 30 seconds.");
             } else {
                 RequestBuffer.request(() -> event.getMessage().reply(":x: You do not have permission to do that."));
             }
@@ -102,7 +123,7 @@ public class DiscordEventListener {
                 Main.get().getConfig().set("settings.guild", guild);
                 Main.get().saveConfig();
                 Main.get().reloadConfig();
-                MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Announce logChannel set. Deleting this message in 30 seconds.");
+                MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Announce channel set. Deleting this message in 30 seconds.");
 
             } else {
                 RequestBuffer.request(() -> event.getMessage().reply(":x: You do not have permission to do that."));
@@ -174,14 +195,13 @@ public class DiscordEventListener {
         commandMap.put("setticket", (event, args) -> {
             RequestBuffer.request(() -> event.getMessage().delete());
             if (IPermissionsUtil.hasPermission(event, Permissions.ADMINISTRATOR)) {
-                String[] arr = event.getMessage().getContent().split(" ");
-                if (arr.length == 3) {
+                if (args.size() == 2) {
                     long ID;
                     try {
-                        ID = Long.parseUnsignedLong(arr[2]);
-                        getAndUpdateTickets(event, arr[1], ID);
+                        ID = Long.parseUnsignedLong(args.get(1));
+                        getAndUpdateTickets(event, args.get(0), ID);
                     } catch (NumberFormatException e) {
-                        RequestBuffer.request(() -> event.getChannel().sendMessage(":x: `" + arr[2] + "` is not a number!"));
+                        RequestBuffer.request(() -> event.getChannel().sendMessage(":x: `" + args.get(1) + "` is not a number!"));
                     }
                 } else {
                     RequestBuffer.request(() -> event.getChannel().sendMessage(":x: Message too long or too short. It must be `ob!setticket <type> <ID>`"));
@@ -201,19 +221,18 @@ public class DiscordEventListener {
             }
         });
 
-        commandMap.put("announceChannel", (event, args) -> {
+        commandMap.put("announcechannel", (event, args) -> {
             RequestBuffer.request(() -> event.getMessage().delete());
             if (IPermissionsUtil.hasPermission(event, Permissions.ADMINISTRATOR)) {
-                String[] sarray = event.getMessage().getContent().split(" ");
-                if (sarray.length > 1) {
+                if (args.size() > 0) {
 
                     StringBuilder stringBuilder = new StringBuilder();
-                    for (int i = 1; i < sarray.length; i++) {
-                        stringBuilder.append(sarray[i]).append(" ");
+                    for (int i = 0; i < args.size(); i++) {
+                        stringBuilder.append(args.get(0)).append(" ");
                     }
                     String message = stringBuilder.toString().trim();
-                        MessageAPI.sendToDiscord(guild, getAnnounceChannel(), "**Announcement from " + event.getAuthor().getName() + "**\n" + event.getGuild().getEveryoneRole().mention() + ", " + message);
-                        MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Announcement made with the message \"" + message + "\"");
+                    MessageAPI.sendToDiscord(guild, getAnnounceChannel(), "**Announcement from " + event.getAuthor().getName() + "**\n" + event.getGuild().getEveryoneRole().mention() + ", " + message);
+                    MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":white_check_mark: Announcement made with the message \"" + message + "\"");
                 } else {
                     MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), ":x: Please provide a message to announceChannel");
                 }
@@ -249,9 +268,9 @@ public class DiscordEventListener {
         commandMap.put("poll", (event, args) -> {
             event.getMessage().delete();
             if (IPermissionsUtil.hasPermission(event, Permissions.ADMINISTRATOR)) {
-                String[] sarray = event.getMessage().getContent().split(" ");
+
                 int count = IFunctions.count(event.getMessage().getContent(), ']');
-                if (!(sarray.length > 1)) {
+                if (!(args.size() > 0)) {
                     MessageAPI.sendToDiscord(guild, event.getChannel().getLongID(), "Please enter a question and options to create a poll.");
                     return;
                 }
@@ -266,8 +285,8 @@ public class DiscordEventListener {
 
                 try {
                     StringBuilder stringBuilder = new StringBuilder();
-                    for (int i = 1; i < sarray.length; i++) {
-                        stringBuilder.append(sarray[i]).append(" ");
+                    for (String arg : args) {
+                        stringBuilder.append(arg).append(" ");
                     }
                     String message = stringBuilder.toString().trim();
                     String question = message.substring(0, message.indexOf('['));
@@ -309,6 +328,9 @@ public class DiscordEventListener {
     }
 
 
+    /**
+     * Any commands that does not require permissions, will go in here.
+     */
     private static HashMap<String, ICommand> baseCommands = new HashMap<>();
 
     /*

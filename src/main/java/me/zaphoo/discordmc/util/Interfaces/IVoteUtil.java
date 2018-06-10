@@ -11,7 +11,6 @@ public interface IVoteUtil {
     IEmoji VOTE_BLUE = Main.getClient().getGuildByID(403264935745814560L).getEmojiByName("vote_blue");
     IEmoji VOTE_GREY = Main.getClient().getGuildByID(403264935745814560L).getEmojiByName("vote_grey");
     IEmoji VOTE_AQUA = Main.getClient().getGuildByID(403264935745814560L).getEmojiByName("vote_aqua");
-    IEmoji OKAY = Main.getClient().getGuilds().get(0).getEmojiByName("white_check_mark");
 
     IEmoji[] EMOJIS = {VOTE_GREEN, VOTE_RED, VOTE_YELLOW, VOTE_BLUE, VOTE_GREY, VOTE_AQUA};
 
