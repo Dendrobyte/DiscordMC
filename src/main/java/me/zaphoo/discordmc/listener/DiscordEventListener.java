@@ -2,6 +2,8 @@ package me.zaphoo.discordmc.listener;
 
 import com.vdurmont.emoji.EmojiParser;
 import me.zaphoo.discordmc.Main;
+import me.zaphoo.discordmc.TrelloEditor.EditBoard;
+import me.zaphoo.discordmc.TrelloEditor.ReportEvent;
 import me.zaphoo.discordmc.util.Classes.MessageAPI;
 import me.zaphoo.discordmc.Objects.HelpList;
 import me.zaphoo.discordmc.Objects.Mute;
@@ -78,12 +80,25 @@ public class DiscordEventListener {
 
     static {
 
+        commandMap.put("setreportchannel", (e, args) -> {
+            RequestBuffer.request(() -> e.getMessage().delete());
+            if (IPermissionsUtil.hasPermission(e, IPermissionsUtil.VIEW_AUDIT)) {
+                long chan = e.getChannel().getLongID();
+                long guild = e.getGuild().getLongID();
+                Main.get().getConfig().set("settings.reports-channel", chan);
+                Main.get().getConfig().set("settings.guild", guild);
+                Main.get().saveConfig();
+                Main.get().reloadConfig();
+                MessageAPI.sendToDiscord(guild, e.getChannel().getLongID(), ":white_check_mark: Reports channel set. Deleting this message in 30 seconds.");
+            }
+        });
+
         commandMap.put("setlogchannel", ((event, args) -> {
             RequestBuffer.request(() -> event.getMessage().delete());
             if (IPermissionsUtil.hasPermission(event, Permissions.VIEW_AUDIT_LOG)) {
                 long chan = event.getChannel().getLongID();
                 long guild = event.getGuild().getLongID();
-                Main.get().getConfig().set("settings.log-logChannel", chan);
+                Main.get().getConfig().set("settings.log-channel", chan);
                 Main.get().getConfig().set("settings.guild", guild);
                 Main.get().saveConfig();
                 Main.get().reloadConfig();
@@ -104,7 +119,7 @@ public class DiscordEventListener {
             if (IPermissionsUtil.hasPermission(event, Permissions.VIEW_AUDIT_LOG)) {
                 long chan = event.getChannel().getLongID();
                 long guild = event.getGuild().getLongID();
-                Main.get().getConfig().set("settings.rulesChannel-logChannel", chan);
+                Main.get().getConfig().set("settings.rules-channel", chan);
                 Main.get().getConfig().set("settings.guild", guild);
                 Main.get().saveConfig();
                 Main.get().reloadConfig();
@@ -119,7 +134,7 @@ public class DiscordEventListener {
             if (IPermissionsUtil.hasPermission(event, Permissions.VIEW_AUDIT_LOG)) {
                 long chan = event.getChannel().getLongID();
                 long guild = event.getGuild().getLongID();
-                Main.get().getConfig().set("settings.announceChannel-logChannel", chan);
+                Main.get().getConfig().set("settings.announce-channel", chan);
                 Main.get().getConfig().set("settings.guild", guild);
                 Main.get().saveConfig();
                 Main.get().reloadConfig();
@@ -285,8 +300,8 @@ public class DiscordEventListener {
 
                 try {
                     StringBuilder stringBuilder = new StringBuilder();
-                    for (String arg : args) {
-                        stringBuilder.append(arg).append(" ");
+                    for (int i = 0; i < args.size(); i++) {
+                        stringBuilder.append(args.get(i)).append(" ");
                     }
                     String message = stringBuilder.toString().trim();
                     String question = message.substring(0, message.indexOf('['));
@@ -329,7 +344,7 @@ public class DiscordEventListener {
 
 
     /**
-     * Any commands that does not require permissions, will go in here.
+     * Any commands that do
      */
     private static HashMap<String, ICommand> baseCommands = new HashMap<>();
 
@@ -468,6 +483,16 @@ public class DiscordEventListener {
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "restart");
                 }
             }
+
+            if (event.getChannel().getLongID() == ReportEvent.REPORTS_CHANNEL) {
+                ReportEvent reportEvent = new ReportEvent(event);
+                System.out.println(reportEvent.checkValidity());
+                if (reportEvent.checkValidity()) {
+                    reportEvent.officiallyFileReport();
+                }
+            }
+
+
             String[] message = event.getMessage().getContent().split(" ");
             if (!event.getMessage().getContent().toLowerCase().startsWith(commandPrefix)) {
                 return;

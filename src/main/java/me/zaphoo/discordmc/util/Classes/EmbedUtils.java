@@ -12,6 +12,7 @@ import sx.blah.discord.util.EmbedBuilder;
 import java.awt.*;
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 
 public class EmbedUtils {
 
@@ -104,7 +105,7 @@ public class EmbedUtils {
                 .withTitle("**Reminder scheduled for " + new Date(reminder.then) + "**")
                 .withTimestamp(reminder.now)
                 .appendField("Message", reminder.message, false)
-                .appendField("ID for deletion", String.valueOf(reminder.ID),false)
+                .appendField("ID for deletion", String.valueOf(reminder.ID), false)
                 .withThumbnail("https://cdn.pixabay.com/photo/2012/04/15/21/36/envelope-35393_960_720.png")
                 .withColor(new Color(145, 145, 145));
         return eb.build();
@@ -150,13 +151,15 @@ public class EmbedUtils {
      * Sends a message to a user regarding proper report criteria.
      * Method used in checkValidity()
      */
-    public static EmbedObject incorrectReportEmbed(IUser reporter){
-        return new EmbedBuilder().withColor(new Color(128,0, 128))
+    public static EmbedObject incorrectReportEmbed(List<String> strings) {
+        StringBuilder stringBuilder = new StringBuilder();
+        strings.forEach(s -> stringBuilder.append("- ").append(s).append("\n"));
+        return new EmbedBuilder().withColor(new Color(128, 0, 128))
                 .withAuthorName("Incorrect Format")
                 .withTitle("You've formatted your issue report incorrectly!")
                 .withDescription("Please structure your issue report WITH THE FOLLOWING FIELDS (feel free to copy and paste) - \nTitle of Issue: \nMC or Discord Related: \nMC Username: \nWorld/Channel: \nDescription:")
                 .withFooterText("Your MC username lets us know who you are in-game, even if your issue is not MC related. Thank you!")
-                .withThumbnail("http://0x0.st/s254.png")
+                .appendField("You forgot the following in your report:", stringBuilder.toString(), false)
                 .build();
     }
 
@@ -164,7 +167,7 @@ public class EmbedUtils {
      * Sends a message to a user informing them of a successful report.
      * Method used in officiallyFileReport()
      */
-    public static EmbedObject correctReportEmbed(IUser reporter){
+    public static EmbedObject correctReportEmbed(IUser reporter) {
         return new EmbedBuilder().withColor(new Color(128, 0, 128))
                 .withAuthorName("Issue report submitted successfully!")
                 .withTitle("We have received your issue report and it has been filed away!")

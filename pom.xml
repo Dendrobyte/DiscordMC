@@ -4,27 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>eu.manuelgu</groupId>
+    <groupId>RedstoneOinkcraft</groupId>
     <artifactId>DiscordMC</artifactId>
     <version>1.5.0</version>
     <name>DiscordMC</name>
-    <description>A Discord to Minecraft Chat Gateway</description>
-
-    <developers>
-        <!--Why is this here?-->
-        <developer>
-            <id>manuelgu</id>
-            <name>manuelgu</name>
-            <email>code@manuelgu.eu</email>
-            <url>https://manuelgu.eu</url>
-        </developer>
-        <developer>
-            <id>Mobkinz78</id>
-            <name>Mark</name>
-            <email>Mobkinz78@gmail.com</email>
-            <url>http://www.markbacon78.org</url>
-        </developer>
-    </developers>
+    <description>A bridge between Discord, Trello and Minecraft!</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

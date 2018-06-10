@@ -2,16 +2,14 @@ package me.zaphoo.discordmc.TrelloEditor;
 
 import me.zaphoo.discordmc.Main;
 import me.zaphoo.discordmc.util.Classes.EmbedUtils;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.trello4j.model.Card;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IMessage;
 import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.RequestBuffer;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Mark on 6/10/2018.
@@ -31,18 +29,19 @@ import java.util.Map;
  */
 public class ReportEvent {
 
-    IChannel channel;
-    IUser reporter;
-    IMessage report;
-    boolean isValidReport;
+    private IChannel channel;
+    private IUser reporter;
+    private IMessage report;
+    private boolean isValidReport;
 
-    private final String REPORTS_CHANNEL = Main.get().getConfig().getString("settings.reports-channel");
+    public static final Long REPORTS_CHANNEL = Main.get().getConfig().getLong("settings.reports-channel");
 
     // Construct the report itself
-    public ReportEvent(MessageReceivedEvent event){
-        channel = event.getChannel();
-        reporter = event.getAuthor();
-        report = event.getMessage();
+    public ReportEvent(MessageReceivedEvent event) {
+        this.channel = event.getChannel();
+        this.reporter = event.getAuthor();
+        this.report = event.getMessage();
+        System.out.println(REPORTS_CHANNEL);
     }
 
     /*
@@ -50,10 +49,11 @@ public class ReportEvent {
      * The message must contain "MC Username:", "World:", and "Description:"
      * The message must be sent in the reports-channel
      */
-    private boolean checkValidity(){
-
+    public boolean checkValidity() {
+        List<String> falseFlags = new ArrayList<>();
+        isValidReport = true;
         // Not sent in the reports channel, thus can be ignored.
-        if(!channel.getName().equals(REPORTS_CHANNEL)) {
+        if (!(channel.getLongID() == REPORTS_CHANNEL)) {
             isValidReport = false;
             return isValidReport;
         }
@@ -62,27 +62,44 @@ public class ReportEvent {
          * Delete message and inform user if the message does not meet criteria.
          */
         String fullReport = report.getContent();
-        if(!fullReport.contains("Title of Issue:") || !fullReport.contains("MC or Discord Related:") || !fullReport.contains("MC Username:") || !fullReport.contains("World/Channel:") || !fullReport.contains("Description:")){
+        if (!fullReport.contains("Title of Issue:")) {
+            falseFlags.add("Title.");
+            isValidReport = false;
+        }
+        if (!fullReport.contains("MC or Discord Related:")) {
+            falseFlags.add("Relation.");
+            isValidReport = false;
+        }
+        if (!fullReport.contains("MC Username:")) {
+            falseFlags.add("MC Username.");
+            isValidReport = false;
+        }
+        if (!fullReport.contains("World/Channel:")) {
+            falseFlags.add("World or channel.");
+            isValidReport = false;
+        }
+        if (!fullReport.contains("Description:")) {
+            falseFlags.add("Description.");
+            isValidReport = false;
+        }
+        if (isValidReport){
+            // Has passed all checks and is a valid message
+            return isValidReport;
+        } else {
             RequestBuffer.request(() -> {
                 report.delete();
-                reporter.getOrCreatePMChannel().sendMessage(EmbedUtils.incorrectReportEmbed(reporter));
+                reporter.getOrCreatePMChannel().sendMessage(EmbedUtils.incorrectReportEmbed(falseFlags));
             });
-
-            isValidReport = false;
-            return isValidReport;
+            return false;
         }
-
-        // Has passed all checks and is a valid message
-        isValidReport = true;
-        return isValidReport;
     }
 
     /*
      * Confirm the report and add a new card to the General Issues board.
      * If isValidReport is false, no card will be created as the message could not be verified.
      */
-    private void officiallyFileReport(){
-        if(!isValidReport) return;
+    public void officiallyFileReport() {
+        if (!isValidReport) return;
 
         // Create the card fields
         String fullReport = report.getContent();
@@ -97,12 +114,13 @@ public class ReportEvent {
                 + fullReport.substring(indexOfWorld, indexOfDescription) + "\n"
                 + fullReport.substring(indexOfDescription);
 
-
         // Add the card to general issues.
         EditBoard.createCardInReports(cardName, cardDesc);
 
         // Send them a good 'ol confirmation message
         RequestBuffer.request(() -> reporter.getOrCreatePMChannel().sendMessage(EmbedUtils.correctReportEmbed(reporter)));
     }
+
+
 
 }
