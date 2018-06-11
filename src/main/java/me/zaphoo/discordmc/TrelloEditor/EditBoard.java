@@ -23,22 +23,13 @@ public class EditBoard {
     private static final String API_KEY = config.getString("settings.trello.API-key");
     private static final String API_TOKEN = config.getString("settings.trello.API-token");
 
-    private static Trello botTrello = new TrelloImpl(API_KEY, API_TOKEN);
-
-    // Check if the keys are there, thus preventing errors spamming console and such.
-
-    /* Create board
-     * General Issues Board ID: 5b159d93431c9a85db11a4f1
-     */
-    private final String genIssuesBoardID = "5b159d93431c9a85db11a4f1";
-    private Board genIssues = botTrello.getBoard(genIssuesBoardID);
-
     /*
      * Create card in "Player Reports" on the "General Issues" board [no label]
      * List ID: 5b15ac6db7100d5b46e29774
      */
     public static void createCardInReports(String cardName, String cardDesc) {
-        System.out.println(true);
+        Trello botTrello = new TrelloImpl(API_KEY, API_TOKEN);
+
         String reportsID = "5b15ac6db7100d5b46e29774";
         String name = cardName;
         String desc = cardDesc;
@@ -47,6 +38,8 @@ public class EditBoard {
 
         // Create card
         Card card = botTrello.createCard(reportsID, name, descMap);
+
+        System.out.println("Done!");
     }
     /* TODO: Add label support
      * private void createCardInReports(String name, String desc, int labelChoice){}

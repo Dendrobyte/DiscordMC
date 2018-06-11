@@ -2,6 +2,10 @@ package me.zaphoo.discordmc.TrelloEditor;
 
 import me.zaphoo.discordmc.Main;
 import me.zaphoo.discordmc.util.Classes.EmbedUtils;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.trello4j.Trello;
+import org.trello4j.TrelloImpl;
+import org.trello4j.model.Card;
 import sx.blah.discord.handle.impl.events.guild.channel.message.MessageReceivedEvent;
 import sx.blah.discord.handle.obj.IChannel;
 import sx.blah.discord.handle.obj.IMessage;
@@ -9,7 +13,9 @@ import sx.blah.discord.handle.obj.IUser;
 import sx.blah.discord.util.RequestBuffer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Mark on 6/10/2018.
@@ -99,11 +105,7 @@ public class ReportEvent {
      * If isValidReport is false, no card will be created as the message could not be verified.
      */
     public void officiallyFileReport() {
-        System.out.println("CALLED FILE REPORT METHOD");
-
         if (!isValidReport) return;
-
-        System.out.println("MOVING ON TO TRELLO METHOD");
 
         // Create the card fields
         String fullReport = report.getContent();
@@ -118,8 +120,33 @@ public class ReportEvent {
                 + fullReport.substring(indexOfWorld, indexOfDescription) + "\n"
                 + fullReport.substring(indexOfDescription);
 
-        // Add the card to general issues.
-        EditBoard.createCardInReports(cardName, cardDesc);
+        {
+            FileConfiguration config = Main.get().getConfig();
+            final String API_KEY = config.getString("settings.trello.API-key");
+            final String API_TOKEN = config.getString("settings.trello.API-token");
+
+            /*
+             * Create card in "Player Reports" on the "General Issues" board [no label]
+             * List ID: 5b15ac6db7100d5b46e29774
+             * public static void createCardInReports(String cardName, String cardDesc) {
+             */
+            Trello botTrello = new TrelloImpl(API_KEY, API_TOKEN);
+
+            String reportsID = "5b15ac6db7100d5b46e29774";
+            String name = cardName;
+            String desc = cardDesc;
+            Map<String, String> descMap = new HashMap<String, String>();
+            descMap.put("desc", desc);
+
+            // Create card
+            Card card = botTrello.createCard(reportsID, name, descMap);
+
+            System.out.println("Done!");
+            /* TODO: Add label support
+             * private void createCardInReports(String name, String desc, int labelChoice){}
+             * Where labelChoice is in the discord message and we've pre-assigned them
+             */
+        }
 
         // Send them a good 'ol confirmation message
         RequestBuffer.request(() -> reporter.getOrCreatePMChannel().sendMessage(EmbedUtils.correctReportEmbed(reporter)));
